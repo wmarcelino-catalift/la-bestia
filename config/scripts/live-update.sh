@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
-# live-update.sh — writes near-real-time agent/tool activity to vault
-# Called from PreToolUse (Task) and PostToolUse (Task, Bash, Write, Edit)
-# Args: $1 = event type (pre|post), $2 = tool name
+# live-update.sh — near-real-time agent/tool activity to vault
+# $1 = event (pre|post). Tool name read from $CLAUDE_TOOL_NAME env var.
 
 VAULT="$HOME/Obsidian/claude-brain"
 LIVE_FILE="$VAULT/live/session.md"
@@ -9,59 +8,60 @@ LOG_FILE="$HOME/.claude/logs/live-activity.jsonl"
 mkdir -p "$VAULT/live" "$(dirname "$LOG_FILE")"
 
 EVENT="${1:-post}"
-TOOL="${2:-unknown}"
+TOOL="${CLAUDE_TOOL_NAME:-unknown}"   # read from env, not from args
 TS=$(date '+%H:%M:%S')
-DATE=$(date '+%Y-%m-%d')
 CWD=$(pwd)
 PROJECT=$(basename "$CWD")
 
-# Parse tool input from env
+# Parse what Claude is doing from tool input
 INPUT=$(echo "${CLAUDE_TOOL_INPUT:-{}}" | jq -r '
-  if .description then .description
-  elif .command then (.command | split("\n")[0] | .[0:80])
-  elif .file_path then .file_path
-  elif .prompt then (.prompt | .[0:80])
-  else "—"
-  end' 2>/dev/null || echo "—")
-
-# Emoji + label per tool
+  (.description // .command // .file_path // .prompt // .query // "—")
+  | gsub("\n"; " ")
+  | if length > 70 then .[0:70] + "…" else . end
+' 2>/dev/null)
+[ -z "$INPUT" ] && INPUT="—"
+# For file paths, show only the filename
 case "$TOOL" in
-  Task)        ICON="🤖"; LABEL="Agent" ;;
-  Bash)        ICON="⚡"; LABEL="Bash" ;;
-  Edit|Write)  ICON="📝"; LABEL="File" ;;
-  Read|Glob)   ICON="🔍"; LABEL="Read" ;;
-  *)           ICON="🔧"; LABEL="$TOOL" ;;
+  Read|Edit|Write) INPUT=$(echo "$INPUT" | awk -F/ '{print $NF}') ;;
 esac
 
-# Status per event
+# Emoji per tool
+case "$TOOL" in
+  Task)              ICON="🤖"; LABEL="Agent" ;;
+  Bash)              ICON="⚡"; LABEL="Bash" ;;
+  Edit|Write)        ICON="📝"; LABEL="$TOOL" ;;
+  Read|Glob|Grep)    ICON="🔍"; LABEL="$TOOL" ;;
+  WebFetch|WebSearch) ICON="🌐"; LABEL="Web" ;;
+  *)                 ICON="🔧"; LABEL="$TOOL" ;;
+esac
+
+# Status
 if [ "$EVENT" = "pre" ]; then
-  STATUS="starting…"
   ICON_STATUS="🔵"
+  if [ "$TOOL" = "Task" ]; then
+    CURRENT="**🔵 Ahora:** 🤖 Agent — \`${INPUT}\` — iniciando…"
+  else
+    CURRENT="**🔵 Ahora:** ${ICON} ${LABEL} — \`${INPUT}\`"
+  fi
 else
-  STATUS="done"
   ICON_STATUS="✅"
+  CURRENT="**✅ Último:** ${ICON} ${LABEL} — \`${INPUT}\`"
 fi
 
-# Append to JSONL log
-echo "{\"ts\":\"$TS\",\"event\":\"$EVENT\",\"tool\":\"$TOOL\",\"input\":\"$INPUT\",\"project\":\"$PROJECT\"}" >> "$LOG_FILE"
+# Append to JSONL log (escape input for JSON)
+INPUT_ESC=$(echo "$INPUT" | sed 's/"/\\"/g' | tr -d '\n')
+echo "{\"ts\":\"$TS\",\"event\":\"$EVENT\",\"tool\":\"$TOOL\",\"label\":\"$LABEL\",\"icon\":\"$ICON\",\"input\":\"$INPUT_ESC\",\"project\":\"$PROJECT\"}" >> "$LOG_FILE"
 
-# Build rolling last-10 lines from log
-LAST10=$(tail -20 "$LOG_FILE" | jq -r \
-  '"| " + .ts + " | " + (if .tool == "Task" then "🤖 Agent" elif .tool == "Bash" then "⚡ Bash" elif (.tool == "Edit" or .tool == "Write") then "📝 " + .tool else "🔧 " + .tool end) + " | " + .input' \
-  2>/dev/null | tail -10 | tac)
+# Build table from last 12 log entries (macOS compatible — no tac)
+LAST12=$(tail -12 "$LOG_FILE" | jq -r \
+  '"| " + .ts + " | " + .icon + " " + .label + " | " + .input' \
+  2>/dev/null | tail -r 2>/dev/null || tail -12 "$LOG_FILE" | jq -r \
+  '"| " + .ts + " | " + .icon + " " + .label + " | " + .input' \
+  2>/dev/null)
 
-# Current action line
-if [ "$EVENT" = "pre" ] && [ "$TOOL" = "Task" ]; then
-  CURRENT="**${ICON_STATUS} Ahora:** \`$(echo "$INPUT" | head -c 60)\` — iniciando…"
-elif [ "$EVENT" = "pre" ]; then
-  CURRENT="**${ICON_STATUS} Ahora:** ${ICON} \`$(echo "$INPUT" | head -c 60)\`"
-else
-  CURRENT="**${ICON_STATUS} Último:** ${ICON} ${LABEL} — \`$(echo "$INPUT" | head -c 60)\` — done"
-fi
-
-# Session start time (first entry in log for today)
-SESSION_START=$(grep "\"ts\"" "$LOG_FILE" 2>/dev/null | head -1 | jq -r '.ts' 2>/dev/null || echo "$TS")
-TOTAL_AGENTS=$(grep '"tool":"Task"' "$LOG_FILE" 2>/dev/null | wc -l | tr -d ' ')
+# Stats
+SESSION_START=$(head -1 "$LOG_FILE" 2>/dev/null | jq -r '.ts' 2>/dev/null || echo "$TS")
+TOTAL_AGENTS=$(grep -c '"tool":"Task"' "$LOG_FILE" 2>/dev/null || echo 0)
 TOTAL_TOOLS=$(wc -l < "$LOG_FILE" 2>/dev/null | tr -d ' ')
 
 # Write atomically
@@ -83,18 +83,17 @@ $CURRENT
 
 | Hora | Tool | Descripción |
 |---|---|---|
-$LAST10
+$LAST12
 
 ---
 
-## Stats · sesión desde $SESSION_START
-- 🤖 Agentes invocados: **$TOTAL_AGENTS**
-- 🔧 Tool calls totales: **$TOTAL_TOOLS**
+## Stats · desde $SESSION_START
+- 🤖 Agentes: **$TOTAL_AGENTS**
+- 🔧 Tool calls: **$TOTAL_TOOLS**
 - 📁 Proyecto: \`$PROJECT\`
-- 📂 Path: \`$CWD\`
+- 📂 \`$CWD\`
 
----
-*Auto-actualizado por La Bestia · [[INDEX]]*
+*[[INDEX]] · La Bestia*
 EOF
 
 mv "$TEMP" "$LIVE_FILE"
