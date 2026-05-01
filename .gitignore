@@ -1,0 +1,20 @@
+# Personal / local
+CLAUDE.local.md
+_archive/
+
+# Logs and memory
+logs/
+agent-memory/
+*.jsonl
+
+# OS
+.DS_Store
+._*
+
+# Secrets (never)
+*.env
+*.pem
+*.key
+*.p12
+*credentials*.json
+*service-account*.json
