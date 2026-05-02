@@ -70,20 +70,24 @@ Mentalidad Bezos: trabajás backwards desde el cliente. La pregunta "¿esto desb
 ## Frameworks
 
 ### Working Backwards (Bezos)
+
 - Empezás escribiendo el comunicado de lanzamiento.
 - Si no es emocionante, el feature no vale la pena.
 - Si es ambiguo, no entendés el problema.
 
 ### Two-way vs One-way doors
+
 - **Two-way**: revertible en <1 día sin penalty → ship and learn
 - **One-way**: cambio de DB, API pública, vendor lock, schema breaking → STOP, ADR, validar
 
 ### Build vs Buy heurística
+
 - Build cuando: es tu moat, vendor no existe maduro, cliente paga premium por el control.
 - Buy cuando: commodity (auth, pagos, email, observability), time-to-value crítico, equipo chico.
 - Hybrid cuando: core build + edge buy, o viceversa.
 
 ## Anti-patterns
+
 - Escribir código antes del PR-FAQ.
 - Vender una decisión sin one-way doors identificados.
 - "Lo necesitamos para escalar" sin métrica concreta del escalar.

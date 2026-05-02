@@ -1,18 +1,14 @@
 #!/usr/bin/env bash
-# UserPromptSubmit hook
-# Suggests which subagent to use based on prompt keywords.
-# Outputs hint to stdout — Claude treats it as additional context, not as a directive.
+# UserPromptSubmit hook — suggest a subagent based on prompt keywords.
 
 set -u
 
 PROMPT="${CLAUDE_USER_PROMPT:-}"
 [ -z "$PROMPT" ] && exit 0
 
-# Lowercase for matching
 P=$(echo "$PROMPT" | tr '[:upper:]' '[:lower:]')
 
 ROUTE=""
-
 case "$P" in
   *arquitectura*|*diseño*|*tradeoff*|*"vs "*|*patrón*|*escalabilidad*|*adr*)
     ROUTE="architect" ;;
@@ -26,12 +22,13 @@ case "$P" in
     ROUTE="test-engineer" ;;
   *review*|*"check this"*|*revisá*|*revisa*)
     ROUTE="code-reviewer" ;;
-  *commit*|*"pull request"*|*" pr "*|*merge*|*ship*|*deploy*|*push*)
+  *commit*|*"pull request"*|*" pr "*|*merge*|*ship*|*push*)
     ROUTE="ship-it (skill)" ;;
+  *eas*|*"expo build"*|*"firebase deploy"*|*emulador*|*emulator*|*"github actions"*|*" ci "*|*pipeline*|*"eas build"*|*"eas submit"*|*"eas update"*|*hosting*|*"cloud functions"*|*deploy*|*build*)
+    ROUTE="devops" ;;
+  *supabase*|*firestore*|*"firebase functions"*|*"base de datos"*|*schema*|*migration*|*query*|*índice*)
+    ROUTE="architect (data layer)" ;;
 esac
 
-if [ -n "$ROUTE" ]; then
-  echo "[ROUTING HINT] Considera delegar a: $ROUTE"
-fi
-
+[ -n "$ROUTE" ] && echo "[ROUTING HINT] Considera delegar a: $ROUTE"
 exit 0

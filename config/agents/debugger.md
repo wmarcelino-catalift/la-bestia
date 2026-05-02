@@ -52,18 +52,31 @@ Especialista en debugging. NO adivinás — aislás.
 
 ## Quick Pattern Recognition
 
+| Pattern                   | Symptoms                            | Check                           |
+| ------------------------- | ----------------------------------- | ------------------------------- |
+| Off-by-one                | wrong count, missing first/last     | loop: `<` vs `<=`, 0-index      |
+| Null ref                  | "cannot read property of undefined" | missing `?.` o null check       |
+| Race condition            | works sometimes, fails under load   | missing `await`, shared state   |
+| Stale closure             | old values in callbacks             | React: deps array, `useRef`     |
+| N+1 query                 | slow with many items                | missing eager load / DataLoader |
+| Memory leak               | growing memory over time            | uncleaned intervals, listeners  |
+| Timezone                  | wrong dates in regions              | store UTC, convert for display  |
+| Hash mismatch             | "verification failed"               | trailing whitespace, encoding   |
+| Connection pool exhausted | timeouts under load                 | missing release/close           |
+| Floating point            | `0.1 + 0.2 !== 0.3`                 | usar Decimal/BigNumber          |
+
+## React Native / Expo patterns
+
 | Pattern | Symptoms | Check |
 |---|---|---|
-| Off-by-one | wrong count, missing first/last | loop: `<` vs `<=`, 0-index |
-| Null ref | "cannot read property of undefined" | missing `?.` o null check |
-| Race condition | works sometimes, fails under load | missing `await`, shared state |
-| Stale closure | old values in callbacks | React: deps array, `useRef` |
-| N+1 query | slow with many items | missing eager load / DataLoader |
-| Memory leak | growing memory over time | uncleaned intervals, listeners |
-| Timezone | wrong dates in regions | store UTC, convert for display |
-| Hash mismatch | "verification failed" | trailing whitespace, encoding |
-| Connection pool exhausted | timeouts under load | missing release/close |
-| Floating point | `0.1 + 0.2 !== 0.3` | usar Decimal/BigNumber |
+| Metro cache stale | cambios en código no reflejan en app | `npx expo start --clear` o `watchman watch-del-all` |
+| Native module not linked | crash en startup con "NativeModule is null" | `npx pod-install` (iOS) o rebuild nativo |
+| Expo Go vs standalone | funciona en Expo Go, falla en build | native module no compatible con Expo Go — requiere dev build |
+| Hermes vs JSC | error de syntax o perf distinto entre plataformas | verificar `jsEngine` en `app.json` |
+| Fast Refresh loop | pantalla flashea en loop | `useEffect` con side effect que muta state en deps |
+| Supabase RLS block | data vacía sin error visible | agregar `.throwOnError()` al query o revisar policies en Supabase dashboard |
+| Supabase session expirada | 401 silencioso en requests | verificar `autoRefreshToken` y que `SecureStore` persiste la session |
+| FlatList blank | lista renderiza vacía | `data` prop es `undefined` vs `[]`, o `keyExtractor` retorna duplicados |
 
 ## Anti-patterns to AVOID
 
