@@ -31,13 +31,13 @@ Implementador default de la bestia. Cada feature nace como test failing.
 
 ## Equivalence Partitioning (cheat sheet)
 
-| Input | Valid | Invalid |
-|---|---|---|
+| Input  | Valid                                                | Invalid                                                                                                    |
+| ------ | ---------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
 | String | normal, spaces, unicode (émojis, 中文, العربية), max | empty, null, whitespace-only, SQL inj (`'; DROP--`), XSS (`<script>`), path traversal (`../../etc/passwd`) |
-| Number | 0, +, -, float, min, max | NaN, Infinity, null, string, BigInt overflow |
-| Array | empty, 1, many, nested | null, circular, mixed types, 10M items |
-| Date | valid ISO, epoch, far future/past | invalid format, UTC midnight edge, leap year, DST |
-| Email | user@domain.com, user+tag | empty, no @, multiple @, no domain, >254 chars |
+| Number | 0, +, -, float, min, max                             | NaN, Infinity, null, string, BigInt overflow                                                               |
+| Array  | empty, 1, many, nested                               | null, circular, mixed types, 10M items                                                                     |
+| Date   | valid ISO, epoch, far future/past                    | invalid format, UTC midnight edge, leap year, DST                                                          |
+| Email  | user@domain.com, user+tag                            | empty, no @, multiple @, no domain, >254 chars                                                             |
 
 ## Boundary Value Analysis (ejemplo)
 
@@ -66,13 +66,58 @@ Invalid:
 ```
 
 ## Property-Based (invariantes)
+
 - `sort(list).length === list.length`
 - `encode(decode(x)) === x`
 - `validate(generate()) === true`
 - `f(f(x)) === f(x)` (idempotencia)
 
+## React Native / Expo (stack-specific)
+
+### Stack de testing
+
+- **Unit**: Jest + `@testing-library/react-native` (RNTL)
+- **E2E**: Maestro (preferido para Expo) o Detox
+- Setup: `jest-expo` preset en `jest.config.js`
+
+### Mock del cliente Supabase
+
+```ts
+// __mocks__/supabase.ts
+jest.mock("@/lib/supabase", () => ({
+  supabase: {
+    from: jest.fn().mockReturnThis(),
+    select: jest.fn().mockReturnThis(),
+    insert: jest.fn().mockReturnThis(),
+    update: jest.fn().mockReturnThis(),
+    eq: jest.fn().mockReturnThis(),
+    single: jest.fn().mockResolvedValue({ data: null, error: null }),
+    auth: {
+      getSession: jest.fn().mockResolvedValue({ data: { session: null } }),
+      signOut: jest.fn().mockResolvedValue({ error: null }),
+    },
+  },
+}));
+```
+
+### Patrones RN a testear
+
+- Componentes: `render` + `fireEvent` de RNTL, no Enzyme
+- Navigation: mockear `useNavigation` y `useRoute`
+- AsyncStorage: mockear con `@react-native-async-storage/async-storage/jest/async-storage-mock`
+- Hooks con estado async: usar `waitFor` + `act` de RNTL
+- FlatList: testear que renderiza items y que `onEndReached` dispara carga
+
+### Qué NO testear en RN
+
+- Estilos exactos (StyleSheet) — frágiles y sin valor
+- Animaciones — mockear `Animated`
+- Native modules (Camera, Location) — siempre mockear
+
 ## Mutation Testing
+
 Si cambiás `>` por `>=` y ningún test falla, los tests son débiles.
+
 - Reemplazá `+` por `-`, `&&` por `||`, `true` por `false`
 - Remové llamadas, returns, condicionales
 - Tests siguen pasando → gap de testing

@@ -51,15 +51,30 @@ grep -rEn "sk-ant-[a-zA-Z0-9_-]{20,}|sk_live_[a-zA-Z0-9]{20,}|sk_test_[a-zA-Z0-9
 grep -rEn "AKIA[A-Z0-9]{16}|aws_secret_access_key" .
 grep -rEn "(api_?key|apikey|secret|token|password)\s*[=:]\s*['\"][^'\"]{8,}" --include="*.{ts,tsx,js,jsx,py,go,rs}" .
 
+# Supabase-specific
+grep -rEn "service_role" .                          # service_role key = acceso admin total — NUNCA en cliente
+grep -rEn "supabase\.from\(" src/ | grep -v "rls"  # tablas sin RLS habilitado
+grep -rEn "createClient.*service_role" src/         # client-side con service_role = BLOCK
+
+# Firebase-specific
+grep -rEn "firebase-adminsdk|serviceAccount" src/   # admin SDK nunca en cliente RN
+grep -rEn "firestore\.rules" . 2>/dev/null           # verificar que rules no sean allow all
+grep -rEn "allow read, write: if true" .             # Firestore rules abiertas = BLOCK
+grep -rEn "apiKey.*firebase" src/                    # Firebase config en código (OK si es pública, flag si es admin)
+
+# React Native / Expo
+grep -rn "AsyncStorage.*password\|AsyncStorage.*token\|AsyncStorage.*secret" src/  # datos sensibles sin encriptar
+grep -rn "SecureStore" src/                          # confirmar que se usa SecureStore para tokens
+grep -rEn "Linking\.openURL\|Linking\.canOpenURL" src/  # deep links sin validación
+grep -rn "EXPO_PUBLIC_" .env* 2>/dev/null            # vars públicas — no secrets
+
 # Injection
-grep -rn "execSync\|child_process.exec[^F]" src/  # exec sin escape
-grep -rn "raw(\|cursor.execute(.*%s" src/         # SQL string interp
-grep -rn "innerHTML\s*=\|dangerouslySetInnerHTML" src/
+grep -rn "execSync\|child_process.exec[^F]" src/
+grep -rn "raw(\|cursor.execute(.*%s" src/
 grep -rn "eval(\|Function(" src/
 
 # Deserialization
-grep -rn "pickle.loads\|yaml.load(" src/  # unsafe yaml/pickle
-grep -rn "JSON.parse(.*req\." src/        # parse sin validation
+grep -rn "JSON.parse(.*req\." src/
 
 # Crypto
 grep -rn "MD5\|SHA1\|md5(\|sha1(" src/
@@ -67,23 +82,23 @@ grep -rn "Math.random()" src/  # no para crypto
 
 # Auth/JWT
 grep -rn "verify.*algorithms.*none" src/
-grep -rn "expiresIn:\s*['\"]" src/  # ¿expiry sano?
+grep -rn "expiresIn:\s*['\"]" src/
 ```
 
 ## OWASP Top 10 (cheat)
 
-| # | Categoría | Check rápido |
-|---|---|---|
-| A01 | Broken Access Control | ¿Cada endpoint chequea ownership? IDOR? |
-| A02 | Cryptographic Failures | ¿bcrypt/argon2 para passwords? TLS everywhere? |
-| A03 | Injection | ¿Parametrized queries? Input validation en borde? |
-| A04 | Insecure Design | ¿Rate limit? ¿Account lockout? ¿2FA opcional? |
-| A05 | Security Misconfig | ¿Default creds? ¿Debug en prod? ¿CORS abierto? |
-| A06 | Vuln Components | ¿`npm audit` clean? ¿Pin de versiones? |
-| A07 | Auth Failures | ¿Session rotation? ¿CSRF? ¿Brute force protection? |
-| A08 | Data Integrity | ¿Signed updates? ¿Supply chain (lockfile commit)? |
-| A09 | Logging Failures | ¿Audit log de acciones sensibles? ¿Sin secretos en logs? |
-| A10 | SSRF | ¿Validás URLs antes de fetch? ¿Whitelist outbound? |
+| #   | Categoría              | Check rápido                                             |
+| --- | ---------------------- | -------------------------------------------------------- |
+| A01 | Broken Access Control  | ¿Cada endpoint chequea ownership? IDOR?                  |
+| A02 | Cryptographic Failures | ¿bcrypt/argon2 para passwords? TLS everywhere?           |
+| A03 | Injection              | ¿Parametrized queries? Input validation en borde?        |
+| A04 | Insecure Design        | ¿Rate limit? ¿Account lockout? ¿2FA opcional?            |
+| A05 | Security Misconfig     | ¿Default creds? ¿Debug en prod? ¿CORS abierto?           |
+| A06 | Vuln Components        | ¿`npm audit` clean? ¿Pin de versiones?                   |
+| A07 | Auth Failures          | ¿Session rotation? ¿CSRF? ¿Brute force protection?       |
+| A08 | Data Integrity         | ¿Signed updates? ¿Supply chain (lockfile commit)?        |
+| A09 | Logging Failures       | ¿Audit log de acciones sensibles? ¿Sin secretos en logs? |
+| A10 | SSRF                   | ¿Validás URLs antes de fetch? ¿Whitelist outbound?       |
 
 ## Auth invariants (verificá siempre)
 
@@ -94,6 +109,22 @@ grep -rn "expiresIn:\s*['\"]" src/  # ¿expiry sano?
 - Rate limit por IP + por user en endpoints críticos
 - 2FA disponible para admin
 - Audit log de cambios de password, email, permisos
+
+## Supabase invariants (stack-specific)
+
+- RLS habilitado en TODAS las tablas que tengan datos de usuarios
+- `service_role` key solo en server-side (Edge Functions / backend), nunca en el cliente RN
+- `anon` key expuesta en cliente es OK — validar que RLS la limite correctamente
+- Supabase Auth: `autoRefreshToken: true`, `persistSession: true` con SecureStore en RN
+- Edge Functions: validar JWT del request con `supabase.auth.getUser(token)` antes de operar
+
+## React Native / Expo invariants
+
+- Tokens de sesión en `expo-secure-store`, NUNCA en `AsyncStorage`
+- Deep links: validar scheme + host antes de procesar payload
+- Expo OTA (`expo-updates`): `updates.checkAutomatically` + `codeSigningCertificate` en producción
+- `EXPO_PUBLIC_*` vars son bundle-time públicas — no poner secrets ahí
+- `app.json` / `eas.json`: no hardcodear secrets, usar EAS Secrets
 
 ## Anti-patterns to BLOCK
 

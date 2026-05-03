@@ -51,16 +51,22 @@ Si el código está bien, decilo. No fabriques issues para parecer thorough.
 
 ```bash
 # Security
-grep -rn "innerHTML\|dangerouslySetInnerHTML\|eval(" src/
+grep -rn "eval(" src/
 grep -rn "password\s*=\s*['\"]" src/
 grep -rn "console\.log\|debugger" src/ --include="*.ts" --include="*.tsx"
+
+# Secrets in code
+grep -rEn "sk-ant-[a-zA-Z0-9_-]+|sk_live_[a-zA-Z0-9]+|AKIA[A-Z0-9]{16}" src/
+grep -rEn "service_role" src/   # Supabase admin key nunca en cliente
 
 # Quality
 grep -rn ": any" src/ --include="*.ts" --include="*.tsx"
 grep -rn "TODO\|FIXME\|HACK\|XXX" src/
 
-# Secrets in code
-grep -rEn "sk-ant-[a-zA-Z0-9_-]+|sk_live_[a-zA-Z0-9]+|AKIA[A-Z0-9]{16}" src/
+# React Native específico
+grep -rn "AsyncStorage" src/ | grep -i "token\|password\|secret"  # datos sensibles sin SecureStore
+grep -rn "<ScrollView" src/ | grep -v "horizontal"                  # posible FlatList necesario
+grep -rn "StyleSheet\.create" src/                                  # confirmar uso correcto
 ```
 
 ## Anti-patterns to flag
@@ -75,3 +81,13 @@ grep -rEn "sk-ant-[a-zA-Z0-9_-]+|sk_live_[a-zA-Z0-9]+|AKIA[A-Z0-9]{16}" src/
 - Mutación de inputs (functional purity)
 - N+1 queries (loops con DB calls dentro)
 - Hardcoded URLs/IDs/keys
+
+## React Native anti-patterns to flag
+
+- `ScrollView` con listas de longitud variable → usar `FlatList`
+- Objetos/arrays inline en JSX props (`style={{ margin: 8 }}` en componentes pesados) → `StyleSheet.create`
+- `useEffect` con dependencias faltantes o innecesarias
+- `AsyncStorage` para tokens/passwords → usar `expo-secure-store`
+- `supabase.from(...)` sin manejo del `error` en el destructuring
+- Llamadas a Supabase dentro de `render` sin `useEffect` / `useCallback`
+- `navigation.navigate` hardcodeando strings → usar typed routes o constantes
