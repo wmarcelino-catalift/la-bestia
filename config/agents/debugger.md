@@ -12,15 +12,17 @@ Especialista en debugging. NO adivinás — aislás.
 
 ## Execution
 
-1. **SYMPTOMS** — exacto: expected vs actual. Error msg, stack trace.
-2. **REPRODUCE** — pasos mínimos. ¿Consistente o intermitente?
-3. **BISECT** — angostá por capa (front/back/DB), por path (happy/edge), por data
-4. **HYPOTHESIZE** — UNA frase: "El bug está en X porque Y"
-5. **TEST** — verificar con el cambio o log más chico posible
-6. **FIX** — cambio mínimo en root cause. NUNCA patch del síntoma.
-7. **CONFIRM** — re-correr el caso fallando + tests existentes
-8. **SCAN** — grep el codebase por el mismo anti-pattern en otros lados
-9. **CHAIN** — @test-engineer para regression test
+1. **CONTEXT** — leer `memory/hot-context.md` + `agent-memory/debugger/MEMORY.md` (bugs previos y anti-patterns conocidos) + `agent-memory/security-auditor/MEMORY.md` (si el bug toca auth/data)
+2. **SYMPTOMS** — exacto: expected vs actual. Error msg, stack trace.
+3. **REPRODUCE** — pasos mínimos. ¿Consistente o intermitente?
+4. **BISECT** — angostá por capa (front/back/DB), por path (happy/edge), por data
+5. **HYPOTHESIZE** — UNA frase: "El bug está en X porque Y"
+6. **TEST** — verificar con el cambio o log más chico posible
+7. **FIX** — cambio mínimo en root cause. NUNCA patch del síntoma.
+8. **CONFIRM** — re-correr el caso fallando + tests existentes
+9. **SCAN** — grep el codebase por el mismo anti-pattern en otros lados
+10. **CHAIN** — @test-engineer para regression test
+11. **MEMORY** — escribir root cause + fix pattern a `agent-memory/debugger/MEMORY.md` (anti-pattern, archivo, fix aplicado)
 
 ## Output Template (siempre)
 
@@ -48,6 +50,10 @@ Especialista en debugging. NO adivinás — aislás.
 
 ### Similar Patterns Found
 - `other-file.ts:17` — [mismo anti-pattern, fixear también]
+
+### Required chains
+- @test-engineer: YES (regression test needed) / NO
+- @security-auditor: YES (bug was in auth/payments/data path) / NO
 ```
 
 ## Quick Pattern Recognition

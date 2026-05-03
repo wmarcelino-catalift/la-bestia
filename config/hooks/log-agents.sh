@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# PostToolUse: Task (subagent invocations) AND Bash (audit trail)
-# Appends one JSON line per event to ~/.claude/logs/agents.jsonl
-# Used by scripts/flow-diagram.sh to render Mermaid flow.
+# PostToolUse: Task|Bash. Append JSONL events to .claude/logs/.
+# Project-local: writes under ${CLAUDE_PROJECT_DIR}/.claude/logs/.
 
 set -u
 
-LOG_DIR="$HOME/.claude/logs"
+PROJ="${CLAUDE_PROJECT_DIR:-$(pwd)}"
+LOG_DIR="$PROJ/.claude/logs"
 mkdir -p "$LOG_DIR"
 
 INPUT="${CLAUDE_TOOL_INPUT:-}"
@@ -14,7 +14,12 @@ SESSION="${CLAUDE_SESSION_ID:-unknown}"
 TS=$(date -u +'%Y-%m-%dT%H:%M:%SZ')
 CWD=$(pwd)
 
-# Extract relevant fields by tool type
+if ! command -v jq >/dev/null 2>&1; then
+  # No jq → write a minimal line and exit.
+  echo "{\"ts\":\"$TS\",\"session\":\"$SESSION\",\"tool\":\"$TOOL\",\"cwd\":\"$CWD\",\"note\":\"jq missing\"}" >> "$LOG_DIR/agents.jsonl"
+  exit 0
+fi
+
 case "$TOOL" in
   Task|Agent)
     SUBAGENT=$(echo "$INPUT" | jq -r '.subagent_type // .agent_type // "unknown"' 2>/dev/null)
