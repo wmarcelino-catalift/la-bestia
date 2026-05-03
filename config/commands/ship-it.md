@@ -17,6 +17,7 @@ Activá el skill `ship-it` y ejecutá la quality gate completa.
    - Dispatch @code-reviewer en el diff completo.
    - Si tocó auth/payments/PII → dispatch @security-auditor.
    - Si va a producción → checklist de las 5 preguntas SRE.
+   - Si el PR existe en GitHub → correr `claude ultrareview <PR#>` para review automático profundo.
 7. **Si TODO pasa**:
    - Generar conventional commit message.
    - Crear branch si estás en main.
@@ -43,6 +44,7 @@ Activá el skill `ship-it` y ejecutá la quality gate completa.
 ### Review chain
 - code-reviewer: [APPROVE / CHANGES / BLOCK]
 - security-auditor: [N/A / APPROVE / CHANGES / BLOCK]
+- ultrareview: [N/A / PASS / FINDINGS]
 
 ### Veredicto
 [SHIP IT 🚀 / BLOCKED]

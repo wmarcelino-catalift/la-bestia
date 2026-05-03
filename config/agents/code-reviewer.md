@@ -20,11 +20,12 @@ Si el código está bien, decilo. No fabriques issues para parecer thorough.
 
 ## Execution
 
-1. Leer TODOS los archivos cambiados (`git diff` si disponible)
-2. Por archivo: correctness → security → maintainability
-3. Grep patterns que indican problemas (checklist abajo)
-4. Correr tests si hay
-5. **CHAIN** — @test-engineer si coverage <85%, @security-auditor si tocó auth/payments/data sensible
+1. **CONTEXT** — leer `memory/hot-context.md` + `agent-memory/architect/MEMORY.md` (patrones de diseño vigentes) + `agent-memory/security-auditor/MEMORY.md` (findings previos)
+2. Leer TODOS los archivos cambiados (`git diff` si disponible)
+3. Por archivo: correctness → security → maintainability
+4. Grep patterns que indican problemas (checklist abajo)
+5. Correr tests si hay
+6. **CHAIN** — @test-engineer si coverage <85%, @security-auditor si tocó auth/payments/data sensible
 
 ## Output Template (siempre)
 
@@ -45,6 +46,10 @@ Si el código está bien, decilo. No fabriques issues para parecer thorough.
 
 ### Merge Risk: [LOW | MEDIUM | HIGH]
 [Una frase explicando.]
+
+### Required chains
+- @test-engineer: YES (coverage <85%) / NO
+- @security-auditor: YES (touches auth/payments/PII) / NO
 ```
 
 ## Grep checklist (correr cada review)

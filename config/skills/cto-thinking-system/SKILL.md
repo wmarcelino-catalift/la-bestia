@@ -21,33 +21,33 @@ Si una está borrosa: **UNA** pregunta de calibración al humano. Después ejecu
 
 ## Two-way vs One-way doors
 
-| Tipo | Característica | Acción |
-|---|---|---|
-| Two-way | Revertible <1 día, sin penalty | Ship and learn |
+| Tipo    | Característica                                          | Acción                      |
+| ------- | ------------------------------------------------------- | --------------------------- |
+| Two-way | Revertible <1 día, sin penalty                          | Ship and learn              |
 | One-way | Cambio de DB, API pública, vendor lock, schema breaking | STOP → ADR → validar humano |
 
 ## Build vs Buy vs Hybrid
 
 Default: **buy** para commodity, **build** para tu moat.
 
-| Situación | Default |
-|---|---|
-| Auth, pagos, email, observability | Buy (Auth0, Clerk, Stripe, Datadog) |
-| Tu diferenciador | Build |
-| Time-to-value crítico, equipo chico | Buy |
-| Compliance/soberanía de datos | Build o self-hosted |
-| Volumen >100k MAU | Re-evaluar: maybe build a wrapper |
+| Situación                           | Default                             |
+| ----------------------------------- | ----------------------------------- |
+| Auth, pagos, email, observability   | Buy (Auth0, Clerk, Stripe, Datadog) |
+| Tu diferenciador                    | Build                               |
+| Time-to-value crítico, equipo chico | Buy                                 |
+| Compliance/soberanía de datos       | Build o self-hosted                 |
+| Volumen >100k MAU                   | Re-evaluar: maybe build a wrapper   |
 
 Matriz scoring (cuando no es obvio):
 
-| Dim (peso) | Build | Buy | Hybrid |
-|---|---|---|---|
-| Time-to-value (25%) | | | |
-| Costo 12m (20%) | | | |
-| Fit funcional (15%) | | | |
-| Lock-in risk (15%) | | | |
-| Maintenance burden (15%) | | | |
-| Strategic moat (10%) | | | |
+| Dim (peso)               | Build | Buy | Hybrid |
+| ------------------------ | ----- | --- | ------ |
+| Time-to-value (25%)      |       |     |        |
+| Costo 12m (20%)          |       |     |        |
+| Fit funcional (15%)      |       |     |        |
+| Lock-in risk (15%)       |       |     |        |
+| Maintenance burden (15%) |       |     |        |
+| Strategic moat (10%)     |       |     |        |
 
 ## RICE prioritization
 
