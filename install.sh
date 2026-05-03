@@ -1,25 +1,27 @@
 #!/usr/bin/env bash
-# La Bestia — install.sh
-# Sets up the full CTO senior Claude Code config globally.
-# Safe to re-run (idempotent).
+# La Bestia v0.3 — install.sh
+# Instala la configuración CTO senior de Claude Code (global o project-local).
+# Safe to re-run (idempotente).
 
 set -e
-CLAUDE_DIR="$HOME/.claude"
-VAULT="${OBSIDIAN_VAULT:-$HOME/Obsidian/claude-brain}"
 
-echo "=== La Bestia v0.1 — Installing ==="
-echo "Claude dir: $CLAUDE_DIR"
-echo "Vault:      $VAULT"
-echo ""
+MODE="${1:-global}"  # global | project
+if [ "$MODE" = "project" ]; then
+  CLAUDE_DIR="${2:-.claude}"
+  echo "=== La Bestia v0.3 — Project-local install in $CLAUDE_DIR ==="
+else
+  CLAUDE_DIR="$HOME/.claude"
+  echo "=== La Bestia v0.3 — Global install in $CLAUDE_DIR ==="
+fi
 
-# 1. Backup existing config
-if [ -d "$CLAUDE_DIR" ] && [ "$(ls -A $CLAUDE_DIR)" ]; then
-  BACKUP="$CLAUDE_DIR/_backup_$(date +%Y%m%d_%H%M%S)"
-  echo "→ Backing up existing ~/.claude/ to $BACKUP"
+# Backup
+if [ -d "$CLAUDE_DIR" ] && [ "$(ls -A "$CLAUDE_DIR" 2>/dev/null)" ]; then
+  BACKUP="${CLAUDE_DIR}/_backup_$(date +%Y%m%d_%H%M%S)"
+  echo "→ Backing up to $BACKUP"
   cp -r "$CLAUDE_DIR" "$BACKUP"
 fi
 
-# 2. Create directory structure
+# Directory structure
 mkdir -p \
   "$CLAUDE_DIR/agents" \
   "$CLAUDE_DIR/hooks" \
@@ -28,104 +30,103 @@ mkdir -p \
   "$CLAUDE_DIR/skills/cto-thinking-system" \
   "$CLAUDE_DIR/skills/ship-it" \
   "$CLAUDE_DIR/skills/token-saver" \
+  "$CLAUDE_DIR/logs/sessions" \
+  "$CLAUDE_DIR/vault" \
   "$CLAUDE_DIR/agent-memory/architect" \
-  "$CLAUDE_DIR/agent-memory/code-reviewer" \
+  "$CLAUDE_DIR/agent-memory/cto-strategist" \
+  "$CLAUDE_DIR/agent-memory/pm" \
   "$CLAUDE_DIR/agent-memory/debugger" \
-  "$CLAUDE_DIR/logs/sessions"
+  "$CLAUDE_DIR/agent-memory/test-engineer" \
+  "$CLAUDE_DIR/agent-memory/code-reviewer" \
+  "$CLAUDE_DIR/agent-memory/security-auditor" \
+  "$CLAUDE_DIR/agent-memory/mobile-reviewer" \
+  "$CLAUDE_DIR/agent-memory/devops" \
+  "$CLAUDE_DIR/agent-memory/ux-reviewer" \
+  "$CLAUDE_DIR/agent-memory/content-manager" \
+  "$CLAUDE_DIR/agent-memory/data-engineer"
 
-# 3. Copy config files
-echo "→ Installing agents..."
+# Copy agent-memory templates (don't overwrite if populated)
+for agent_dir in config/agent-memory/*/; do
+  agent=$(basename "$agent_dir")
+  target="$CLAUDE_DIR/agent-memory/$agent/MEMORY.md"
+  if [ ! -f "$target" ]; then
+    cp "$agent_dir/MEMORY.md" "$target"
+  fi
+done
+
+# Agents (12)
+echo "→ Installing 12 agents..."
 cp config/agents/*.md "$CLAUDE_DIR/agents/"
 
+# Hooks (5)
 echo "→ Installing hooks..."
 cp config/hooks/*.sh "$CLAUDE_DIR/hooks/"
 chmod +x "$CLAUDE_DIR/hooks/"*.sh
 
+# Scripts
 echo "→ Installing scripts..."
 cp config/scripts/*.sh "$CLAUDE_DIR/scripts/"
 chmod +x "$CLAUDE_DIR/scripts/"*.sh
 
+# Commands (11)
 echo "→ Installing commands..."
 cp config/commands/*.md "$CLAUDE_DIR/commands/"
 
+# Skills (3)
 echo "→ Installing skills..."
-cp config/skills/cto-thinking-system/SKILL.md "$CLAUDE_DIR/skills/cto-thinking-system/"
-cp config/skills/ship-it/SKILL.md "$CLAUDE_DIR/skills/ship-it/"
-cp config/skills/token-saver/SKILL.md "$CLAUDE_DIR/skills/token-saver/"
+cp -r config/skills/cto-thinking-system "$CLAUDE_DIR/skills/"
+cp -r config/skills/ship-it "$CLAUDE_DIR/skills/"
+cp -r config/skills/token-saver "$CLAUDE_DIR/skills/"
 
-echo "→ Installing CLAUDE.md..."
-cp config/CLAUDE.md "$CLAUDE_DIR/CLAUDE.md"
+# CLAUDE.md (global only — project has its own)
+if [ "$MODE" = "global" ]; then
+  echo "→ Installing global CLAUDE.md..."
+  cp config/CLAUDE.md "$CLAUDE_DIR/CLAUDE.md"
+fi
 
-# 4. Install settings.json if not exists
+# settings.json
 if [ ! -f "$CLAUDE_DIR/settings.json" ]; then
   echo "→ Installing settings.json..."
   cp config/settings.example.json "$CLAUDE_DIR/settings.json"
+  echo "  ⚠ Edit settings.json — set GOOGLE_APPLICATION_CREDENTIALS if needed."
 else
-  echo "⚠ settings.json already exists — not overwriting. See config/settings.example.json."
+  echo "  ⚠ settings.json already exists — not overwriting."
 fi
 
-# 5. Set up Obsidian vault structure
-echo "→ Setting up Obsidian vault at $VAULT..."
-mkdir -p \
-  "$VAULT/people" \
-  "$VAULT/systems" \
-  "$VAULT/projects" \
-  "$VAULT/permanent/decisions" \
-  "$VAULT/permanent/patterns" \
-  "$VAULT/permanent/gotchas" \
-  "$VAULT/inbox" \
-  "$VAULT/live" \
-  "$VAULT/templates"
-
-# Copy vault templates if they don't exist
-if [ ! -f "$VAULT/HOT.md" ]; then
-  cp vault/HOT.md "$VAULT/HOT.md" 2>/dev/null || cat > "$VAULT/HOT.md" <<'EOF'
-# HOT — Cross-project recent context
-
-> Últimos 7 días. Auto-rotado al cerrar sesión por curate-hot.sh.
-> Inyectado al inicio de cada sesión por inject-context.sh.
-
-## Última semana
-- (vacío)
-
-## Decisiones recientes
-- Modelo default: `/model opusplan`
-
-## Pendientes cross-project
-- [ ] Primera sesión con La Bestia
-EOF
+# .claudeignore (project only)
+if [ "$MODE" = "project" ]; then
+  PROJ_ROOT=$(dirname "$CLAUDE_DIR")
+  if [ ! -f "$PROJ_ROOT/.claudeignore" ]; then
+    cp config/.claudeignore.example "$PROJ_ROOT/.claudeignore"
+    echo "→ Installed .claudeignore"
+  fi
+  # Memory dirs
+  mkdir -p "$PROJ_ROOT/memory/decisions"
+  if [ ! -f "$PROJ_ROOT/memory/hot-context.md" ]; then
+    cp memory/hot-context.md "$PROJ_ROOT/memory/hot-context.md"
+    echo "→ Installed memory/hot-context.md template — fill in your project details."
+  fi
 fi
 
-if [ ! -f "$VAULT/INDEX.md" ]; then
-  cat > "$VAULT/INDEX.md" <<'EOF'
-# INDEX — Mapa del vault
-
-## People
-- [[Wilser]] (o tu nombre)
-
-## Systems
-- [[LaBestia]]
-
-## Projects
-- (agregar proyectos aquí)
-EOF
-fi
-
-# 6. Register MCP servers
-echo "→ Registering MCP servers..."
-claude mcp add vault --scope user -- npx -y @modelcontextprotocol/server-filesystem "$VAULT" 2>/dev/null && echo "  ✓ vault MCP" || echo "  ⚠ vault MCP (already exists or failed)"
-claude mcp add memory --scope user -- npx -y @modelcontextprotocol/server-memory 2>/dev/null && echo "  ✓ memory MCP" || echo "  ⚠ memory MCP (already exists or failed)"
-
-# 7. Verify
+# MCP servers (optional)
 echo ""
-echo "→ Running verify..."
-bash "$CLAUDE_DIR/scripts/verify.sh" 2>/dev/null | tail -5
+echo "→ Registering MCP servers (optional)..."
+claude mcp add vault --scope user -- npx -y @modelcontextprotocol/server-filesystem "$HOME/Obsidian/claude-brain" 2>/dev/null && echo "  ✓ vault MCP" || echo "  ⚠ vault MCP skipped"
+claude mcp add memory --scope user -- npx -y @modelcontextprotocol/server-memory 2>/dev/null && echo "  ✓ memory MCP" || echo "  ⚠ memory MCP skipped"
+
+# Verify
+echo ""
+echo "→ Verifying..."
+if [ -f "$CLAUDE_DIR/scripts/verify.sh" ]; then
+  CLAUDE_PROJECT_DIR="$(dirname "$CLAUDE_DIR")" bash "$CLAUDE_DIR/scripts/verify.sh" 2>/dev/null | tail -3
+fi
 
 echo ""
-echo "=== Done! ==="
+echo "=== Done! La Bestia v0.3 installed ==="
 echo ""
 echo "Next steps:"
-echo "  1. Edit ~/.claude/CLAUDE.md with your identity/preferences"
-echo "  2. Set OBSIDIAN_VAULT in ~/.zshrc if different from $VAULT"
-echo "  3. Run: claude (in any project)"
-echo "  4. Test: bash ~/.claude/scripts/verify.sh"
+echo "  1. Edit $CLAUDE_DIR/settings.json (model, permissions)"
+echo "  2. Run: claude (in any project)"
+echo "  3. Test: /agents"
+echo ""
+echo "Windows users: run bestia.ps1 from PowerShell for the 3-pane layout."

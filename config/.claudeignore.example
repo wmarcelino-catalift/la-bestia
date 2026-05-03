@@ -1,0 +1,77 @@
+# .claudeignore — catalift-app
+# Prevents Claude from reading irrelevant files, saving 70-90% tokens on broad searches.
+
+# Dependencies (biggest win)
+node_modules/
+frontend/node_modules/
+functions/node_modules/
+
+# Build outputs
+dist/
+build/
+.expo/
+.next/
+frontend/.expo/
+frontend/dist/
+
+# Lock files (big, zero signal)
+package-lock.json
+frontend/package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Logs
+*.log
+.claude/logs/
+frontend/.expo/
+functions/.runtimeconfig.json
+
+# EAS / CI artifacts
+.eas/
+eas-build-*/
+android/build/
+ios/build/
+ios/Pods/
+android/.gradle/
+
+# Assets (binary, unreadable)
+store-assets/
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.mp4
+*.mov
+*.ttf
+*.otf
+*.woff
+*.woff2
+
+# Firebase emulator cache
+.firebase/
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+
+# IDE / OS
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Test coverage
+coverage/
+.nyc_output/
+
+# Scratch / temp
+_scratch/
+*.tmp
+
+# Docs (usually not needed for coding tasks)
+Documentacion/
+docs/
+public/
+
+# Claude own infra (logs, sessions — not source code)
+.claude/logs/
+.claude/agent-memory/

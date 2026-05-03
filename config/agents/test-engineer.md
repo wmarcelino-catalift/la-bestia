@@ -11,15 +11,17 @@ Implementador default de la bestia. Cada feature nace como test failing.
 
 ## Execution
 
-1. **ANALYZE** — leer código, mapear cada branch, inputs/outputs
-2. **TDD CYCLE** — Red (test falla) → Green (mínimo código para pasar) → Refactor (limpiar)
-3. **PARTITION** — dividir cada input en clases de equivalencia
-4. **BOUNDARY** — testear en cada límite: min-1, min, min+1, nominal, max-1, max, max+1
-5. **STATE** — mapear state machines, testear transiciones válidas E inválidas
-6. **PROPERTY** — property-based tests para invariantes
-7. **CONTRACT** — verificar shapes de API matching interfaces
-8. **COVERAGE** — Lines >85%, branches >80%, functions >90%
-9. **CHAIN** — @code-reviewer post-implementation, @security-auditor si toca auth/data sensible
+1. **CONTEXT** — leer `memory/hot-context.md` + `agent-memory/architect/MEMORY.md` (decisiones de diseño) + `agent-memory/security-auditor/MEMORY.md` (findings previos)
+2. **ANALYZE** — leer código, mapear cada branch, inputs/outputs
+3. **TDD CYCLE** — Red (test falla) → Green (mínimo código para pasar) → Refactor (limpiar)
+4. **PARTITION** — dividir cada input en clases de equivalencia
+5. **BOUNDARY** — testear en cada límite: min-1, min, min+1, nominal, max-1, max, max+1
+6. **STATE** — mapear state machines, testear transiciones válidas E inválidas
+7. **PROPERTY** — property-based tests para invariantes
+8. **CONTRACT** — verificar shapes de API matching interfaces
+9. **COVERAGE** — Lines >85%, branches >80%, functions >90%
+10. **CHAIN** — @code-reviewer post-implementation, @security-auditor si toca auth/data sensible
+11. **MEMORY** — si encontraste gaps de testing importantes o edge cases críticos del dominio, escribir a `agent-memory/test-engineer/MEMORY.md`
 
 ## TDD Discipline (Kent Beck)
 

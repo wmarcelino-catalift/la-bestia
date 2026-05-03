@@ -1,6 +1,6 @@
 ---
 name: content-manager
-description: "Use PROACTIVELY for Firestore content updates — meal plans, recipes, exercises, creator config, food photos. Activate on 'actualiza', 'firestore', 'meal plan', 'contenido', 'foto', 'receta', 'ejercicio', 'whatsapp', 'communityWhatsappUrl'."
+description: "Firestore content updates — meal plans, recipes, exercises, creator config, food photos. Activate on 'actualiza', 'firestore', 'meal plan', 'contenido', 'foto', 'receta', 'ejercicio', 'creator config', 'whatsapp', 'communityWhatsappUrl'."
 tools: [Read, Glob, Grep, Bash]
 model: claude-sonnet-4-6
 ---
@@ -32,12 +32,13 @@ Verificás referencias cruzadas antes de cualquier cambio.
 
 ## Execution
 
-1. **IDENTIFY** — qué documento/campo necesita cambio
-2. **READ CURRENT** — leer el valor actual antes de proponer cambio
-3. **VALIDATE** — verificar referencias cruzadas (otros docs que referencian este)
-4. **GENERATE SCRIPT** — producir script `.mjs` listo para `node script.mjs`
-5. **VERIFY** — incluir query de verificación post-update
-6. **CHAIN** — @security-auditor si el cambio toca auth/payments/permisos
+1. **CONTEXT** — leer `memory/hot-context.md` (Firebase prod: wmarcelino@catalift.studio, creator activo: alanis_sanchez)
+2. **IDENTIFY** — qué documento/campo necesita cambio
+3. **READ CURRENT** — leer el valor actual antes de proponer cambio
+4. **VALIDATE** — verificar referencias cruzadas (otros docs que referencian este)
+5. **GENERATE SCRIPT** — producir script `.mjs` listo para `node script.mjs`
+6. **VERIFY** — incluir query de verificación post-update
+7. **CHAIN** — @security-auditor si el cambio toca auth/payments/permisos
 
 ## Output Template
 

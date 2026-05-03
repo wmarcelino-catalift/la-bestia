@@ -17,12 +17,14 @@ Investigá $ARGUMENTS en paralelo desde múltiples ángulos.
 ## Ejemplos de fan-out típicos
 
 ### Para "agregar feature X a un repo"
+
 - Agent 1 (architect, opus): patterns existentes en el codebase relacionados
 - Agent 2 (security-auditor, sonnet): superficie de ataque del nuevo feature
 - Agent 3 (test-engineer, sonnet): qué tests existentes hay que tocar
 - Agent 4 (researcher → general-purpose, haiku): comparativa de libs externas
 
 ### Para "auditar repo nuevo"
+
 - Agent 1 (general, haiku): mapa de carpetas + entrypoints
 - Agent 2 (general, haiku): dependencies + versiones obsoletas
 - Agent 3 (security-auditor, sonnet): grep de secretos + OWASP smell
@@ -30,6 +32,7 @@ Investigá $ARGUMENTS en paralelo desde múltiples ángulos.
 - Agent 5 (general, haiku): test coverage actual
 
 ### Para "decidir entre 3 frameworks"
+
 - Agent 1 (general, sonnet): docs oficial + features
 - Agent 2 (general, sonnet): community size, maintenance, last release
 - Agent 3 (general, sonnet): casos reales de adopción y abandono

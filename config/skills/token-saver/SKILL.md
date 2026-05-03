@@ -17,6 +17,7 @@ Lista por ROI real. Aplicá en orden cuando el contexto crece.
 ```
 
 Subagents declarativos:
+
 - `model: claude-opus-4-7` → cto-strategist, architect, debugger
 - `model: claude-sonnet-4-6` → test-engineer, code-reviewer, security-auditor
 - `model: claude-haiku-4-5` → repo-explorer, memory-curator, file-fetcher
@@ -34,6 +35,7 @@ Costo: 5-20% del rewrite.
 ## 4. /compact proactivo
 
 Breakpoints lógicos para `/compact`:
+
 - Después de un research extenso, antes de empezar a implementar
 - Después de un debug largo, antes de escribir el fix
 - Al cambiar de feature/módulo dentro de la misma sesión
@@ -82,15 +84,17 @@ export CLAUDE_CODE_MAX_OUTPUT_TOKENS=8000
 ## 7. Regla de 3 capas en consultas a memoria
 
 Antes de leer código fuente:
+
 1. `memory/hot-context.md` (~200 tok)
 2. `memory/decisions/` o `<vault>/projects/<repo>/index.md`
 3. Recién entonces grep/read del código
 
 Esto ahorra hasta 10x en sesiones documentadas.
 
-## 8. Hook route-prompt
+## 8. Routing via CLAUDE.md + agent descriptions (nativo)
 
-El hook UserPromptSubmit detecta keywords y sugiere subagent ANTES de que la exploración entre al contexto principal.
+El routing de agentes es semántico (Claude lee CLAUDE.md + frontmatter de agents/).
+No hay hook de routing — es más preciso y sin falsos positivos.
 
 ## 9. /clear entre tareas no relacionadas
 
@@ -99,6 +103,7 @@ Contexto stale gasta tokens en cada turno. Si pasaste de "debug auth bug" a "dis
 ## 10. Pedir output compacto
 
 Cuando pidas algo a Claude, indicá formato:
+
 - "responde en una tabla"
 - "máx 200 palabras"
 - "solo bullet points"
@@ -106,14 +111,14 @@ Cuando pidas algo a Claude, indicá formato:
 
 ## Heurística rápida
 
-| Síntoma | Acción |
-|---|---|
-| Contexto >60% | `/compact` con instrucciones |
-| Vas a leer >10 archivos | Spawn subagent Haiku |
-| Tarea distinta a la previa | `/clear` |
-| Decisión cara/irreversible | Plan mode (Opus) |
-| Refactor masivo idéntico en N archivos | Switch a Haiku |
-| Bug que no cede | Switch a Opus + debugger agent |
+| Síntoma                                | Acción                         |
+| -------------------------------------- | ------------------------------ |
+| Contexto >60%                          | `/compact` con instrucciones   |
+| Vas a leer >10 archivos                | Spawn subagent Haiku           |
+| Tarea distinta a la previa             | `/clear`                       |
+| Decisión cara/irreversible             | Plan mode (Opus)               |
+| Refactor masivo idéntico en N archivos | Switch a Haiku                 |
+| Bug que no cede                        | Switch a Opus + debugger agent |
 
 ## Métricas
 

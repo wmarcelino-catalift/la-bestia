@@ -26,23 +26,27 @@ Si UNA falla → STOP. No commit hasta resolver.
 ## Comandos por stack
 
 ### Node/TS
+
 ```bash
 npm test && npm run lint && npx tsc --noEmit
 grep -rEn "sk-ant-|sk_live_|AKIA[A-Z0-9]{16}|BEGIN PRIVATE KEY" src/ && exit 1 || echo "no secrets"
 ```
 
 ### Python
+
 ```bash
 ruff check . && mypy . && pytest
 grep -rEn "sk-ant-|sk_live_|AKIA[A-Z0-9]{16}|BEGIN PRIVATE KEY" . && exit 1 || echo "no secrets"
 ```
 
 ### Go
+
 ```bash
 go vet ./... && go test ./... && golangci-lint run
 ```
 
 ### Rust
+
 ```bash
 cargo clippy -- -D warnings && cargo test
 ```
@@ -60,6 +64,7 @@ cargo clippy -- -D warnings && cargo test
 Tipos válidos: `feat`, `fix`, `refactor`, `chore`, `docs`, `test`, `perf`, `style`, `build`, `ci`.
 
 Ejemplos buenos:
+
 ```
 feat(auth): add JWT refresh rotation with 7-day expiry
 fix(api): prevent N+1 query by eager loading user.posts
@@ -67,6 +72,7 @@ refactor(db): extract connection pooling to shared config
 ```
 
 Ejemplos a rechazar:
+
 ```
 fix: update code        ← qué code, qué fix
 feat: add feature       ← cuál feature

@@ -20,11 +20,12 @@ Si el código está bien para RN, decilo. No inventés issues.
 
 ## Execution
 
-1. Leer el archivo + identificar componentes RN usados
-2. Grep por patterns problemáticos (checklist abajo)
-3. Verificar cleanup en useEffect returns
-4. Verificar unit preference si hay pesos/medidas
-5. **CHAIN** — @code-reviewer para lógica general, @security-auditor si toca AsyncStorage con datos sensibles
+1. **CONTEXT** — leer `memory/hot-context.md` (brand activo: alanis_sanchez, stack: Expo SDK 54, expo-router)
+2. Leer el archivo + identificar componentes RN usados
+3. Grep por patterns problemáticos (checklist abajo)
+4. Verificar cleanup en useEffect returns
+5. Verificar unit preference si hay pesos/medidas
+6. **CHAIN** — @code-reviewer para lógica general, @security-auditor si toca AsyncStorage con datos sensibles
 
 ## Output Template
 
@@ -44,7 +45,16 @@ Si el código está bien para RN, decilo. No inventés issues.
 - [específico y genuino]
 
 ### RN Risk: [LOW | MEDIUM | HIGH]
+
+### Required chains
+- @code-reviewer: YES (logic issues found beyond RN patterns) / NO
+- @security-auditor: YES (AsyncStorage with sensitive data found) / NO
+- @ux-reviewer: YES (UX/brand issues found) / NO
 ```
+
+### RN Risk: [LOW | MEDIUM | HIGH]
+
+````
 
 ## RN Grep checklist
 
@@ -65,7 +75,7 @@ grep -rn "AsyncStorage.*token\|AsyncStorage.*password\|AsyncStorage.*secret" --i
 # Brand
 grep -rn "borderRadius.*[0-9]" --include="*.tsx"   # Verificar vs THEME.borderRadius
 grep -rn "#[0-9A-Fa-f]\{6\}" --include="*.tsx"     # Colores hardcodeados
-```
+````
 
 ## RN Anti-patterns to flag
 
