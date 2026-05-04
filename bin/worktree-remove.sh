@@ -44,8 +44,8 @@ if [ ! -d "$WT_PATH" ]; then
   exit 2
 fi
 
-# Check for uncommitted changes inside the worktree.
-if [ -z "${FORCE:+x}" ] || [ "$FORCE" -eq 0 ]; then
+# Check for uncommitted changes inside the worktree (skipped on --force).
+if [ "$FORCE" -eq 0 ]; then
   if [ -n "$(git -C "$WT_PATH" status --porcelain 2>/dev/null)" ]; then
     echo "error: worktree has uncommitted changes" >&2
     echo "  commit / stash them, or pass --force." >&2

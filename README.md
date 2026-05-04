@@ -14,7 +14,7 @@
 | Surface                      | Count | Notes                                                                                                                                                    |
 | ---------------------------- | ----- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Agents                       | 15    | 12 core (Vogels, Linus, Gregg, Schneier, Beck, Norman…) + 3 specialists (python-pro, typescript-pro, react-pro). Schema-validated.                       |
-| Skills                       | 6     | `cto-thinking-system`, `flow-feature`, `ship-it`, `token-saver`, `lessons-loop`, `worktree-flow`                                                         |
+| Skills                       | 7     | `cto-thinking-system`, `flow-feature`, `ship-it`, `token-saver`, `lessons-loop`, `worktree-flow`, `frontend-design`                                      |
 | Slash commands               | 15    | Includes `/flow`, `/flow-worktree`, `/plan-flow`, `/onboard-project`, `/issue`, `/pr-create`                                                             |
 | Hooks                        | 9     | block-secrets, inject-context, **restore-context** (anti-compaction-loss), route-prompt, log-agents, log-session, cwd-changed, notify, architecture-gate |
 | Memory layers                | 5     | `<repo>/memory/{hot-context,decisions,patterns,lessons}` + `~/.claude/agent-memory/<agent>/`                                                             |
@@ -99,7 +99,7 @@ If you've worked in shops with these things, this should feel familiar. If you h
 1. **`<repo>/memory/hot-context.md`** — read at session start. ≤ 200 tokens.
 2. **`<repo>/memory/decisions/`** — ADRs (one-way doors).
 3. **`<repo>/memory/patterns/`** — reusable solutions for this repo.
-4. **`<repo>/memory/lessons/`** *(v4.2)* — append-only incident learnings. Promotion: incident → lesson → pattern → ADR.
+4. **`<repo>/memory/lessons/`** _(v4.2)_ — append-only incident learnings. Promotion: incident → lesson → pattern → ADR.
 5. **`~/.claude/agent-memory/<agent>/MEMORY.md`** — per-agent, cross-session.
 
 `restore-context.sh` re-injects layers 1-4 on session resume / compact. No Obsidian. No external sync. No vendor lock-in.
@@ -136,7 +136,8 @@ GitHub · Postgres · Linear · Sentry · Slack · Filesystem — wire what you 
 
 | Version   | Headline                                                                                                                                                                                                                                                                                 | Date           |
 | --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------- |
-| **4.2.0** | **Resilience & learning loops: `restore-context.sh` (anti-compaction-loss), `memory/lessons/` + `lessons-loop` skill, `worktree-flow` skill + `/flow-worktree` + 3 worktree bins, confidence tagging anti-hallucination layer.**                                                         | **2026-05-04** |
+| **4.2.1** | **Adds `frontend-design` skill — anti-mediocre UI guard-rail (token discovery, identity check, full state coverage). Closes last gap from v4.2 ecosystem analysis.**                                                                                                                    | **2026-05-04** |
+| 4.2.0     | Resilience & learning loops: `restore-context.sh` (anti-compaction-loss), `memory/lessons/` + `lessons-loop` skill, `worktree-flow` skill + `/flow-worktree` + 3 worktree bins, confidence tagging anti-hallucination layer.                                                            | 2026-05-04     |
 | 4.1.0     | Quality measurement pack: `bin/parallelism-check.sh`, `bin/latency-report.sh`, route-prompt.bats extended to 22 cases (16 Tier B canonical), `make test-quality` target.                                                                                                                 | 2026-05-04     |
 | 4.0.0     | Combined v3.2+v3.3+v4.0: 3 specialist agents (python-pro, typescript-pro, react-pro), 3 new hooks (cwd-changed, notify, architecture-gate), 2 new bin utilities (session-analyze, agent-memory-compact), 3 new commands (/issue, /pr-create, /plan-flow), AGENTS.md root file. ADR-0005. | 2026-05-04     |
 | 3.1.0     | Efficiency + analysis pack: `bin/flow-estimate.sh`, synthesis compression, Phase 2 deduplication, per-phase cost, auto-ADR detection, SCAN MODE for surgical edits.                                                                                                                      | 2026-05-04     |

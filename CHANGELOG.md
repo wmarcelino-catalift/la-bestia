@@ -6,6 +6,29 @@ This project adheres to [Semantic Versioning 2.0.0](https://semver.org/).
 
 ## [Unreleased]
 
+## [4.2.1] — 2026-05-04
+
+Patch — adds the last item from the v4.2 ecosystem-gap analysis (`frontend-design` skill).
+
+### Added
+
+- **`config/skills/frontend-design/SKILL.md`** — anti-mediocre UI guard-rail. Forces token discovery, component contract declaration, identity check (5 anti-patterns: gradients, Inter, rounded-2xl, repeated cards, transition-all), full state coverage (default/hover/focus-visible/active/disabled/loading + empty/error/offline/partial/stale), and minimal token set proposal when the project lacks one. Auto-trigger on JSX/TSX/Vue/Svelte writes or "UI" / "component" / "pantalla" prompts. Confidence tagging integrated.
+
+### Changed
+
+- **`config/CLAUDE.md`** — skills table extended to 7 entries (added `frontend-design`).
+- **`.claude-plugin/plugin.json`** — version 4.2.0 → 4.2.1, description mentions 7 skills.
+- **`config/scripts/verify.sh`** — skill count check raised to ≥ 7.
+- **Workspace `CLAUDE.md`** — synced State block to v4.2.1 inventory.
+
+### Fixed
+
+- **`bin/worktree-remove.sh`** — simplified the `FORCE` guard. Was a confusing two-condition check; now a single `[ "$FORCE" -eq 0 ]`. Behavior unchanged.
+
+### Migration from v4.2.0
+
+No action required. New skill is opt-in by trigger.
+
 ## [4.2.0] — 2026-05-04
 
 Resilience & learning loops — closes the three biggest gaps identified vs the wider Claude Code ecosystem (anti-compaction-loss, lessons learned, real worktree paralelism), plus a confidence-tagging anti-hallucination layer. No breaking changes. See [ADR-0006](./memory/decisions/0006-v4.2-resilience-loops.md).

@@ -5,8 +5,8 @@
 
 ## State
 
-- **Version**: 4.2.0 (2026-05-04 — anti-compaction-loss + lessons-loop + worktree paralelo + confidence tagging)
-- **Inventory**: 15 agents (12 core + 3 specialists: `python-pro`, `typescript-pro`, `react-pro`) · 6 skills · 15 commands · 9 hooks · 3 scripts · 9 bin utilities (`compress`, `flow-viewer`, `onboard`, `flow-estimate`, `session-analyze`, `agent-memory-compact`, `parallelism-check`, `latency-report`, `worktree-add`, `worktree-remove`, `worktree-list`).
+- **Version**: 4.2.1 (2026-05-04 — v4.2.0 + `frontend-design` skill anti-mediocre UI guard-rail)
+- **Inventory**: 15 agents (12 core + 3 specialists: `python-pro`, `typescript-pro`, `react-pro`) · 7 skills · 15 commands · 9 hooks · 3 scripts · 9 bin utilities (`compress`, `flow-viewer`, `onboard`, `flow-estimate`, `session-analyze`, `agent-memory-compact`, `parallelism-check`, `latency-report`, `worktree-add`, `worktree-remove`, `worktree-list`).
 - **Routing**: Intent Map in `config/CLAUDE.md` §6.1 — 19 intent → agent/skill/command mappings. Smart routing supersedes keyword matching. SCAN MODE for surgical edits. Confidence tagging (§6.2) on Strategy/Quality/Specialist outputs.
 - **Orchestration**: `/flow` command activates `flow-feature` skill (Discover → Define → Develop → Deliver pipeline with parallel fan-out + Plan-Apply ritual). `/plan-flow` runs Phases 1–2 only (~50% cost). `/flow-worktree <slug>` corre `/flow` adentro de un worktree aislado para paralelismo real.
 - **Onboarding**: `/onboard-project` command bootstraps a project's `memory/` + `CLAUDE.md` + `.claudeignore` from manifest detection (15 stacks).

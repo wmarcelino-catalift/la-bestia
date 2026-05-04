@@ -264,6 +264,7 @@ Live in `~/.claude/skills/<name>/SKILL.md`. Only metadata loaded eagerly (~100 t
 | `token-saver`         | session > 60% context, or subagent with many reads                 |
 | `lessons-loop`        | "lesson", "learned", "gotcha", "post-mortem", debug session > 30 m |
 | `worktree-flow`       | "worktree", "parallel feature", "isolate work", `/flow-worktree`   |
+| `frontend-design`     | "UI", "component", "page", "pantalla", JSX/TSX/Vue/Svelte writes   |
 
 ---
 
