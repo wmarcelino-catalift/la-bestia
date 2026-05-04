@@ -5,20 +5,23 @@
 
 ## State
 
-- **Version**: 4.1.0 (2026-05-04, published on GitHub at v4.1.0)
-- **Inventory**: 15 agents (12 core + 3 specialists: `python-pro`, `typescript-pro`, `react-pro`) · 4 skills · 14 commands · 8 hooks · 3 scripts · 6 bin utilities (`compress`, `flow-viewer`, `onboard`, `flow-estimate`, `session-analyze`, `agent-memory-compact`, `parallelism-check`, `latency-report`).
-- **Routing**: Intent Map in `config/CLAUDE.md` §6.1 — 19 intent → agent/skill/command mappings (16 core + 3 specialist). Smart routing supersedes keyword matching. SCAN MODE for surgical edits.
-- **Orchestration**: `/flow` command activates `flow-feature` skill (Discover → Define → Develop → Deliver pipeline with parallel fan-out + Plan-Apply ritual). `/plan-flow` runs Phases 1–2 only (~50% cost).
+- **Version**: 4.2.0 (2026-05-04 — anti-compaction-loss + lessons-loop + worktree paralelo + confidence tagging)
+- **Inventory**: 15 agents (12 core + 3 specialists: `python-pro`, `typescript-pro`, `react-pro`) · 6 skills · 15 commands · 9 hooks · 3 scripts · 9 bin utilities (`compress`, `flow-viewer`, `onboard`, `flow-estimate`, `session-analyze`, `agent-memory-compact`, `parallelism-check`, `latency-report`, `worktree-add`, `worktree-remove`, `worktree-list`).
+- **Routing**: Intent Map in `config/CLAUDE.md` §6.1 — 19 intent → agent/skill/command mappings. Smart routing supersedes keyword matching. SCAN MODE for surgical edits. Confidence tagging (§6.2) on Strategy/Quality/Specialist outputs.
+- **Orchestration**: `/flow` command activates `flow-feature` skill (Discover → Define → Develop → Deliver pipeline with parallel fan-out + Plan-Apply ritual). `/plan-flow` runs Phases 1–2 only (~50% cost). `/flow-worktree <slug>` corre `/flow` adentro de un worktree aislado para paralelismo real.
 - **Onboarding**: `/onboard-project` command bootstraps a project's `memory/` + `CLAUDE.md` + `.claudeignore` from manifest detection (15 stacks).
 - **GitHub workflow**: `/issue` (list/create/triage via `gh`), `/pr-create` (auto Conventional-Commits PR title + body).
+- **Anti-compaction-loss (v4.2)**: `restore-context.sh` hook fires on SessionStart with source ∈ {compact, resume} — re-inyecta hot-context full + índices de ADRs/patterns/lessons + últimos 8 commits.
+- **Lessons loop (v4.2)**: `memory/lessons/` append-only + `lessons-loop` skill. Promotion path: incident → lesson → pattern → ADR.
+- **Worktree paralelismo (v4.2)**: `worktree-flow` skill + `/flow-worktree` command + `bin/worktree-{add,remove,list}.sh`. Múltiples features en paralelo sin polución del checkout.
 - **CI**: shellcheck + bats + schema validation + no-vault-leftovers + conventional-commit + CHANGELOG gate + install smoke (`.github/workflows/ci.yml`).
-- **Tests**: `bats tests/hooks/` (8/8 hooks, 70+ cases incl. 22-case route-prompt) + `tests/scripts/` (compress, flow-viewer, onboard).
+- **Tests**: `bats tests/hooks/` (9/9 hooks, 85+ cases incl. 22-case route-prompt + 14-case restore-context) + `tests/scripts/` (compress, flow-viewer, onboard).
 - **Quality measurement**: `make test-quality` runs route-prompt bats + parallelism-check + latency-report against live `~/.claude/logs/agents.jsonl`.
 - **Build**: `Makefile` (run `make help`).
-- **Plugin manifest**: `.claude-plugin/plugin.json` v4.1.0 — ready for marketplace publish.
+- **Plugin manifest**: `.claude-plugin/plugin.json` v4.2.0 — ready for marketplace publish.
 - **License**: MIT (`LICENSE`).
-- **Memory**: project-local in `memory/{hot-context,decisions,patterns,templates}`. Per-agent in `~/.claude/agent-memory/<agent>/`. No external vault.
-- **ADRs**: 5 — `0001-bestia-v0.1` (superseded), `0002-v1.0-refactor` (no UI/vault), `0003-v2.0-agent-consolidation` (12 agents), `0004-v3.0-context-and-routing` (Intent Map), `0005-specialist-agents` (3 language specialists).
+- **Memory**: 5-layer — project-local in `memory/{hot-context,decisions,patterns,lessons,templates}`. Per-agent in `~/.claude/agent-memory/<agent>/`. No external vault.
+- **ADRs**: 6 — `0001-bestia-v0.1` (superseded), `0002-v1.0-refactor` (no UI/vault), `0003-v2.0-agent-consolidation` (12 agents), `0004-v3.0-context-and-routing` (Intent Map), `0005-specialist-agents` (3 language specialists), `0006-v4.2-resilience-loops` (anti-compaction + lessons + worktree + confidence).
 
 ## How to evolve the harness
 

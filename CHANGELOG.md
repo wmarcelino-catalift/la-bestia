@@ -6,6 +6,59 @@ This project adheres to [Semantic Versioning 2.0.0](https://semver.org/).
 
 ## [Unreleased]
 
+## [4.2.0] — 2026-05-04
+
+Resilience & learning loops — closes the three biggest gaps identified vs the wider Claude Code ecosystem (anti-compaction-loss, lessons learned, real worktree paralelism), plus a confidence-tagging anti-hallucination layer. No breaking changes. See [ADR-0006](./memory/decisions/0006-v4.2-resilience-loops.md).
+
+### Added
+
+- **`config/hooks/restore-context.sh`** — SessionStart hook for `source ∈ {compact, resume}`. Re-injects: full `memory/hot-context.md`, ADR index, pattern index, lessons index (last 5), last 8 commits. Closes the #1 ecosystem complaint (context loss after `/compact`). 14 bats tests in `tests/hooks/restore-context.bats`. Performance budget < 400 ms p99.
+- **`memory/lessons/`** — append-only learning log. Filename convention `YYYY-MM-DD-<slug>.md`. Promotion path: incident → lesson → pattern → ADR. Includes `memory/lessons/README.md` (when-to-write triggers + anti-patterns) and `memory/templates/lesson-template.md` (skeleton).
+- **`config/skills/lessons-loop/`** — auto-activates after debugging > 30 min, on "post-mortem" / "gotcha" / "lesson" keywords, or via `@debugger` / `@test-engineer` invocation. 5-step ritual: detect trigger → propose to operator → generate slug → fill template → write to `memory/lessons/`.
+- **`config/skills/worktree-flow/`** — runs `/flow` inside isolated git worktrees. Supports parallel features without checkout pollution. Documents heritage of memory/, hooks behavior, anti-patterns, and token economy (~30-40% savings on multi-feature weeks).
+- **`config/commands/flow-worktree.md`** — `/flow-worktree <slug> "<feature>"` wrapper that creates the worktree, hands control to `worktree-flow` skill, and runs `/flow` inside.
+- **`bin/worktree-add.sh`** — creates `../worktrees/<slug>` with branch `feat/<slug>`. Validates kebab-case, refuses duplicate branch / path. Honors `WT_BASE`, `WT_BRANCH_PREFIX`, `WT_BASE_BRANCH` env vars.
+- **`bin/worktree-remove.sh`** — clean removal with uncommitted-changes guard. `--force` to override. Tries `git branch -d` (fast-forward only); leaves branch if unmerged.
+- **`bin/worktree-list.sh`** — table view of active worktrees: path, branch, dirty state, last commit.
+- **Confidence tagging** (Constitution §6.2) — every non-trivial agent output ends with `confidence: <high|medium|low>` + one-sentence `why`. Mandatory for Strategy / Quality / Specialist tiers. Skip in SCAN MODE. Cheap (≤30 tok) anti-hallucination layer.
+
+### Changed
+
+- **`config/CLAUDE.md`** — bumped to constitution v4.2:
+  - §6.2 new section: "Confidence tagging — anti-hallucination layer"
+  - §7 skills table: added `lessons-loop` + `worktree-flow`
+  - §8 hooks: documents `SessionStart (compact|resume)` → `restore-context.sh`
+  - §9 memory: 5-layer (added `memory/lessons/`) + promotion path note. 3-layer rule extended to "hot-context → ADRs/patterns/lessons → source".
+- **`config/settings.example.json`** — wires `restore-context.sh` to SessionStart alongside `inject-context.sh`.
+- **`.claude-plugin/plugin.json`** — version 4.1.0 → 4.2.0, description updated for new surfaces.
+- **`CLAUDE.md`** (workspace) — synced State block to v4.2.0 inventory: 6 skills, 15 commands, 9 hooks, 9 bin utilities, 6 ADRs.
+
+### Migration from v4.1
+
+No breaking changes. New surfaces are opt-in by usage:
+
+```bash
+# Re-install to pick up new hooks + skills + bins:
+bash install.sh global
+
+# Verify:
+bash ~/.claude/scripts/verify.sh
+
+# Try a worktree-isolated flow:
+bash ~/.claude/bin/worktree-add.sh experiment-rsc
+cd ../worktrees/experiment-rsc
+claude
+> /flow "<feature description>"
+```
+
+If you have an in-progress `/flow` session, it will continue working unchanged. The `restore-context.sh` hook only fires on session resume / compact, so existing startup behavior is unchanged.
+
+### Known limitations
+
+- `restore-context.sh` depends on Claude Code passing `source` in the SessionStart JSON payload. Fallback: `CLAUDE_SESSION_SOURCE` env var override (used by tests).
+- `worktree-*.sh` scripts assume Unix-style paths. Windows operators must run from Git Bash. The `bin/worktree-list.sh` uses `realpath --relative-to=` which requires GNU coreutils ≥ 8.27.
+- Confidence tagging is a soft contract enforced by agent prompts, not a runtime gate. Agents that ignore it produce undertagged outputs; CI doesn't reject them.
+
 ## [4.1.0] — 2026-05-04
 
 Quality measurement pack — auto-checkable evidence that the system works WELL, FAST, IN PARALLEL, RELIABLY. No breaking changes.

@@ -183,16 +183,87 @@ The agent recognizes `[SCAN MODE]` and clamps its output. This is a soft contrac
 
 ---
 
+## 6.2 Confidence tagging — anti-hallucination layer (v4.2)
+
+Every non-trivial agent output ends with a confidence tag. This is a soft contract that lets the principal (and the operator) know **where to look hardest**.
+
+### Format
+
+```
+confidence: <high|medium|low>
+why: <one sentence — what makes this confidence level honest>
+```
+
+### Definitions
+
+| Tag      | Meaning                                                            | When to use                                                                                                                        |
+| -------- | ------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `high`   | All evidence checked, no contradictions, work is in domain.        | Reviewed source, ran tests, checked ADR consistency.                                                                               |
+| `medium` | Reasoning is sound but coverage is incomplete or evidence is thin. | Inferred from one source, didn't check edge cases, or work brushes against another module not inspected.                           |
+| `low`    | Best guess given the constraints; the operator should verify.      | Asked to commit code without running tests, opined on code in a language outside specialty, recommendation depends on assumptions. |
+
+### When to apply
+
+- `@strategist`, `@architect`, `@mentor` (Strategy tier) — always.
+- `@code-reviewer`, `@security`, `@optimizer` (Quality tier) — always.
+- `@debugger` — always (debugging is hypothesis-testing; confidence is the result of evidence weighing).
+- `@test-engineer` — when emitting a verdict beyond pass/fail (e.g. "the design is testable").
+- Domain agents (`@devops`, `@data-engineer`, `@tech-writer`, `@designer`) — on recommendations.
+- Specialists (`@python-pro`, `@typescript-pro`, `@react-pro`) — always.
+- SCAN MODE — skip (the ≤200 token budget already implies a fast-pass; one severity tag is enough).
+
+### Example outputs
+
+```
+findings:
+- 🔴 race condition in handlePayment (l. 42-58): two-phase commit not idempotent.
+- 🟡 missing tests for partial-failure path.
+
+confidence: high
+why: reproduced the race in a unit test on the same branch.
+```
+
+```
+recommendation: switch to PostgreSQL row-level locking instead of advisory locks.
+
+confidence: medium
+why: solid pattern but I didn't profile against your write volume (>10k tx/min could hit lock-acquisition latency).
+```
+
+```
+proposal: rewrite the auth module in TypeScript Effect.
+
+confidence: low
+why: Effect adds a learning curve and a runtime dependency; recommend prototyping in a single endpoint first before committing.
+```
+
+### Why this exists
+
+Without confidence tags, the operator must read every paragraph at the same vigilance. With them, the eye goes to `low` first and `high` last. This is cheap (≤ 30 tokens per output) and reduces missed risks.
+
+### Anti-patterns
+
+| Mal                             | Bien                                                                      |
+| ------------------------------- | ------------------------------------------------------------------------- |
+| Tag every output `high`         | Use `medium` when you didn't run the code.                                |
+| Tag everything `low` to be safe | If nothing is `high`, the agent isn't doing useful work.                  |
+| Pad `why` with hedging          | One sentence. State what you actually verified.                           |
+| Use it in SCAN MODE             | SCAN MODE has its own ≤200-token contract. Adding confidence inflates it. |
+
+---
+
 ## 7. Skills (progressive disclosure)
 
 Live in `~/.claude/skills/<name>/SKILL.md`. Only metadata loaded eagerly (~100 tok). Body loads on trigger.
 
-| Skill                 | Auto-trigger                                         |
-| --------------------- | ---------------------------------------------------- |
-| `cto-thinking-system` | "decisión", "diseño", "estrategia", "arquitectura"   |
-| `flow-feature`        | "flow", "pipeline", "full feature", "double diamond" |
-| `ship-it`             | "commit", "PR", "merge", "ship"                      |
-| `token-saver`         | session > 60% context, or subagent with many reads   |
+| Skill                 | Auto-trigger                                                       |
+| --------------------- | ------------------------------------------------------------------ |
+| `cto-thinking-system` | "decisión", "diseño", "estrategia", "arquitectura"                 |
+| `flow-feature`        | "flow", "pipeline", "full feature", "double diamond"               |
+| `ship-it`             | "commit", "PR", "merge", "ship"                                    |
+| `token-saver`         | session > 60% context, or subagent with many reads                 |
+| `lessons-loop`        | "lesson", "learned", "gotcha", "post-mortem", debug session > 30 m |
+| `worktree-flow`       | "worktree", "parallel feature", "isolate work", `/flow-worktree`   |
 
 ---
 
@@ -202,7 +273,8 @@ Registered in `~/.claude/settings.json`. Scripts in `~/.claude/hooks/`. Each has
 
 - **PreToolUse Bash** — blocks `rm -rf /`, `DROP TABLE`, `git push --force` to main/master, `sudo rm -rf`.
 - **PreToolUse Write/Edit** — blocks `.env*`, `*.pem`, `*.key`, `credentials*.json`, `service-account*.json`, content with `sk-ant-*` / `sk_live_*` / `AKIA[A-Z0-9]{16}` / `BEGIN PRIVATE KEY`.
-- **SessionStart** — injects `<repo>/memory/hot-context.md` + git status. **No vault.**
+- **SessionStart (startup)** — `inject-context.sh`: hot-context.md + git status + stack detection. **No vault.**
+- **SessionStart (compact|resume) — `restore-context.sh` (v4.2)**: re-injects full hot-context, ADR / pattern / lesson indices, last 8 commits. Anti-compaction-loss.
 - **UserPromptSubmit** — suggests routing to the right agent based on keywords.
 - **PostToolUse Task** — appends agent invocations to `<project>/.claude/logs/agents.jsonl` for audit.
 - **Stop** — writes session summary under `<project>/.claude/logs/sessions/`.
@@ -216,10 +288,13 @@ Resolution order in agent prompts (cheapest first):
 1. `<repo>/memory/hot-context.md` (~200 tok) — read FIRST.
 2. `<repo>/memory/decisions/<NNNN>-<slug>.md` — ADRs of this repo.
 3. `<repo>/memory/patterns/<slug>.md` — reusable solutions for this repo.
-4. `~/.claude/agent-memory/<agent>/MEMORY.md` — per-agent, cross-session.
-5. Source code — only after 1–4.
+4. `<repo>/memory/lessons/<YYYY-MM-DD-slug>.md` — incident learnings (v4.2). Append-only.
+5. `~/.claude/agent-memory/<agent>/MEMORY.md` — per-agent, cross-session.
+6. Source code — only after 1–5.
 
-**3-layer rule**: hot-context → ADRs/patterns → source. Saves up to 10x tokens on documented sessions.
+**3-layer rule**: hot-context → ADRs/patterns/lessons → source. Saves up to 10x tokens on documented sessions.
+
+**Promotion path**: incident → lesson → pattern (if reusable) → ADR (if architectural).
 
 There is no Obsidian, no external vault, no MCP memory server in the default install. Operators may add MCP servers explicitly (see `mcp/README.md`).
 
