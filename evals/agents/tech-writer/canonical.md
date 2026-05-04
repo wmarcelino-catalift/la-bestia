@@ -5,6 +5,7 @@ Snapshot evaluation for the `tech-writer` agent. Run via `bash evals/run.sh tech
 ## How this works
 
 Each canonical entry has:
+
 1. **Prompt** — exact text the operator would send.
 2. **Setup** — repo state / files / fixtures the agent assumes.
 3. **Expected shape** — required sections, severity tags, key terms.
@@ -46,6 +47,6 @@ This file is a **scaffold**. Backfill the 3-5 canonical prompts during the first
 
 ## Versioning
 
-| Version | Date | Change |
-|---|---|---|
-| 0.1.0 | 2026-05-04 | Scaffold created (canonicals are TODO). |
+| Version | Date       | Change                                  |
+| ------- | ---------- | --------------------------------------- |
+| 0.1.0   | 2026-05-04 | Scaffold created (canonicals are TODO). |

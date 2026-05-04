@@ -5,13 +5,18 @@
 
 ## State
 
-- **Version**: 1.1.0 (2026-05-03)
-- **Inventory**: 18 agents · 3 skills · 11 commands · 5 hooks · 3 scripts · 1 bin utility (`compress`).
+- **Version**: 3.0.1 (2026-05-04, published on GitHub at v3.0.0)
+- **Inventory**: 12 agents · 4 skills · 12 commands · 5 hooks · 3 scripts · 3 bin utilities (`compress`, `flow-viewer`, `onboard`).
+- **Routing**: Intent Map in `config/CLAUDE.md` §6.1 — 16 intent → agent/skill/command mappings. Smart routing supersedes keyword matching.
+- **Orchestration**: `/flow` command activates `flow-feature` skill (Discover → Define → Develop → Deliver pipeline with parallel fan-out + Plan-Apply ritual).
+- **Onboarding**: `/onboard-project` command bootstraps a project's `memory/` + `CLAUDE.md` + `.claudeignore` from manifest detection (15 stacks).
 - **CI**: shellcheck + bats + schema validation + no-vault-leftovers + conventional-commit + CHANGELOG gate + install smoke (`.github/workflows/ci.yml`).
-- **Tests**: `bats tests/hooks/` covering `block-secrets`, `inject-context`, `route-prompt`, `log-agents`, `log-session` (5/5 hooks).
+- **Tests**: `bats tests/hooks/` (5/5 hooks) + `tests/scripts/` (compress, flow-viewer, onboard). 50+ cases total.
 - **Build**: `Makefile` (run `make help`).
-- **Plugin manifest**: `.claude-plugin/plugin.json` — preparatory for future marketplace publish.
-- **Memory**: project-local in `memory/{hot-context,decisions,patterns}`. No external vault.
+- **Plugin manifest**: `.claude-plugin/plugin.json` v3.0.0 — ready for marketplace publish.
+- **License**: MIT (`LICENSE`).
+- **Memory**: project-local in `memory/{hot-context,decisions,patterns,templates}`. Per-agent in `~/.claude/agent-memory/<agent>/`. No external vault.
+- **ADRs**: 4 — `0001-bestia-v0.1` (superseded), `0002-v1.0-refactor` (no UI/vault), `0003-v2.0-agent-consolidation` (12 agents), `0004-v3.0-context-and-routing` (Intent Map).
 
 ## How to evolve the harness
 

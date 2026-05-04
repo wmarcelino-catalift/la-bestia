@@ -1,4 +1,4 @@
-# La Bestia — Claude Code harness · v3.0
+# La Bestia — Claude Code harness · v3.0.1
 
 > A deterministic, tested, MCP-ready harness for Claude Code.
 > **12 archetype-grounded agents** (20+ years framing each) · 12 commands incl. `/flow` orchestration · 5 hooks · 4 skills · 4-layer memory · project-agnostic · zero external vault dependencies.
@@ -134,7 +134,8 @@ GitHub · Postgres · Linear · Sentry · Slack · Filesystem — wire what you 
 
 | Version   | Headline                                                                                                                                                                                                                             | Date           |
 | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------- |
-| **3.0.0** | **Smart routing (Intent Map in CLAUDE.md), rich SessionStart context (15-stack auto-detect + git richness + cost + last-24h agents), `/onboard-project` bootstrap wizard, statusline budget alerts. ~20-30% token savings vs v2.1.** | **2026-05-04** |
+| **3.0.1** | **Patch: install.sh now copies `bin/` (was missing). Added `tests/scripts/compress.bats`. New `docs/QUICKSTART.md`. Updated `docs/HOW-IT-WORKS.md` to v3.0 features. verify.sh checks `bin/`.** | **2026-05-04** |
+| 3.0.0 | Smart routing (Intent Map in CLAUDE.md), rich SessionStart context (15-stack auto-detect + git richness + cost + last-24h agents), `/onboard-project` bootstrap wizard, statusline budget alerts. ~20-30% token savings vs v2.1. | 2026-05-04 |
 | 2.1.0     | `bin/flow-viewer.sh` ASCII gantt of sessions, mandatory phase banners in `/flow`, `/status` rewritten (was broken since v1.0), CI runs `tests/scripts/`. No UI surfaces — text only.                                                 | 2026-05-04     |
 | 2.0.0     | 18 → 12 archetype-grounded agents (Vogels, Linus, Gregg, Schneier, Beck, Norman…). New `/flow` Discover→Define→Develop→Deliver pipeline. Project-agnostic.                                                                           | 2026-05-03     |
 | 1.1.0     | Hook consolidation (track-agent → log-agents), Makefile, plugin manifest, `bin/compress.sh`, +CI gates.                                                                                                                              | 2026-05-03     |

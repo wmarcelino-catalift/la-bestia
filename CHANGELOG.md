@@ -6,6 +6,36 @@ This project adheres to [Semantic Versioning 2.0.0](https://semver.org/).
 
 ## [Unreleased]
 
+## [3.0.1] — 2026-05-04
+
+Patch release closing critical gaps in v3.0. No breaking changes.
+
+### Fixed
+
+- **`install.sh`** — was not copying `bin/*.sh` (compress, flow-viewer, onboard) to `~/.claude/bin/`. Operators following the install workflow ended up missing these utilities. **Patched**: install.sh now creates `~/.claude/bin/` and copies all bin/*.sh during `install.sh global` and `install.sh project`.
+- **`config/scripts/verify.sh`** — added `bin/ (>= 3)` check so verify reports missing bin utilities instead of silent gap.
+
+### Added
+
+- **`tests/scripts/compress.bats`** — 9 test cases for `bin/compress.sh` (header, ranking, stdin, agent filtering, footer). compress was the only bin utility without test coverage.
+- **`docs/QUICKSTART.md`** — 60-second new-operator guide. Covers install, bootstrap, first `/flow`, cost habits, common confusions.
+
+### Changed
+
+- **`docs/HOW-IT-WORKS.md`** — updated SessionStart sequence to reflect v3.0 (15-stack auto-detection, git richness, Intent Map step in routing, 12 commands incl. `/flow` + `/onboard-project`, 4 skills, statusline budget alerts).
+- **`CLAUDE.md` (workspace)** — bumped state to v3.0.1 with full inventory and 4 ADRs listed.
+
+### Migration from v3.0.0
+
+If you installed v3.0.0 via `bash install.sh global`, your `~/.claude/bin/` is missing the utilities. Re-run:
+
+```bash
+cd ~/code/la-bestia
+git pull
+bash install.sh global
+bash ~/.claude/scripts/verify.sh   # should now report bin/ check passing
+```
+
 ## [3.0.0] — 2026-05-04
 
 Smart routing, rich context at session start, project bootstrap wizard. **No breaking changes.** All additive. See [ADR-0004](./memory/decisions/0004-v3.0-context-and-routing.md).
@@ -226,7 +256,8 @@ Major consolidation. **18 agents → 12 archetype-grounded agents.** New `/flow`
 - 3 skills: `cto-thinking-system`, `ship-it`, `token-saver`.
 - Constitution `CLAUDE.md` with the 5 questions + 10 principles.
 
-[Unreleased]: https://github.com/wmarcelino-catalift/la-bestia/compare/v3.0.0...HEAD
+[Unreleased]: https://github.com/wmarcelino-catalift/la-bestia/compare/v3.0.1...HEAD
+[3.0.1]: https://github.com/wmarcelino-catalift/la-bestia/compare/v3.0.0...v3.0.1
 [3.0.0]: https://github.com/wmarcelino-catalift/la-bestia/compare/v2.1.0...v3.0.0
 [2.1.0]: https://github.com/wmarcelino-catalift/la-bestia/compare/v2.0.0...v2.1.0
 [2.0.0]: https://github.com/wmarcelino-catalift/la-bestia/compare/v1.1.0...v2.0.0

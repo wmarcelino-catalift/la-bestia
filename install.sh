@@ -92,6 +92,7 @@ mkdir -p \
   "$TARGET/commands" \
   "$TARGET/hooks" \
   "$TARGET/scripts" \
+  "$TARGET/bin" \
   "$TARGET/logs/sessions" \
   "$TARGET/agent-memory"
 
@@ -120,6 +121,14 @@ chmod +x "$TARGET/hooks/"*.sh
 echo "→ installing scripts..."
 cp config/scripts/*.sh "$TARGET/scripts/"
 chmod +x "$TARGET/scripts/"*.sh
+
+# ── bin utilities (operator-invoked CLI tools) ───────────────────────────────
+if [ -d bin ] && ls bin/*.sh >/dev/null 2>&1; then
+  echo "→ installing bin utilities..."
+  mkdir -p "$TARGET/bin"
+  cp bin/*.sh "$TARGET/bin/"
+  chmod +x "$TARGET/bin/"*.sh
+fi
 
 # ── settings.json ────────────────────────────────────────────────────────────
 if [ ! -f "$TARGET/settings.json" ]; then

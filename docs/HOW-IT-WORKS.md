@@ -20,22 +20,31 @@
 ## 1. What loads when you run `claude`
 
 ```
-claude   ──▶ reads ~/.claude/CLAUDE.md (constitution)
+claude   ──▶ reads ~/.claude/CLAUDE.md (constitution + Intent Map §6.1)
               reads ~/.claude/settings.json (model, hooks, permissions)
               reads <repo>/CLAUDE.md if present (project override)
               fires SessionStart hook → inject-context.sh
-                  └─ injects <repo>/memory/hot-context.md + git status
-              registers all 18 agents (lazy load — body fetched on @mention)
-              registers all 11 commands (markdown recipes)
-              registers all 3 skills (frontmatter eager, body lazy)
+                  ├─ detects 15 stacks (Node.js, TypeScript, Python, Go, Rust,
+                  │  Ruby, PHP, JVM, Expo, Docker, Terraform, Firebase,
+                  │  Supabase, Vercel, Netlify) from manifest files
+                  ├─ injects git richness (branch · uncommitted · ahead-of-upstream
+                  │  · last commit · modified files · recent 5 commits)
+                  ├─ injects $ today (ccusage) + top-3 agents from last 24h
+                  └─ injects <repo>/memory/hot-context.md
+              registers all 12 agents (lazy load — body fetched on @mention)
+              registers all 12 commands (markdown recipes, incl. /flow + /onboard-project)
+              registers all 4 skills (frontmatter eager: cto-thinking-system,
+                  flow-feature, ship-it, token-saver — bodies lazy)
               statusline.sh polls ~/.claude/logs/agents.jsonl every render
+                  └─ shows: model · active agent · last agent (ago) · $today/$week
+                            · ctx % · budget alerts (⚠ at $20, 🚨 at $50)
 ```
 
 There is no daemon, no background service, no continuous watcher. Hooks run only on the events Claude Code emits.
 
 ---
 
-## 2. How a prompt becomes work
+## 2. How a prompt becomes work (v3.0)
 
 ```
 You type:  "revisa la arquitectura del módulo X"
@@ -44,13 +53,19 @@ You type:  "revisa la arquitectura del módulo X"
 UserPromptSubmit hook → route-prompt.sh
               │  matches keyword "arquitectura" → suggests @architect
               ▼
-Principal Claude reads:
-  • CLAUDE.md (constitution → 5 questions filter)
-  • prompt
-  • route-prompt suggestion
+Principal Claude reads, in order:
+  1. ~/.claude/CLAUDE.md (constitution: 5 questions + 10 principles)
+  2. ~/.claude/CLAUDE.md §6.1 — Intent Map (16 mappings, semantic routing)
+  3. <repo>/CLAUDE.md (project rules + glossary, if present)
+  4. The prompt itself
+  5. route-prompt suggestion (deterministic fallback)
               │
               ▼
-Decision: delegate to architect agent (matches description, plan-mode if complex)
+Decision via Intent Map:
+  - "revisa" + "arquitectura" → review intent + architecture domain
+  - Map row: "review" + auth/payments → @code-reviewer (+ @security)
+  - But "arquitectura" → @architect for design review
+  - Principal picks @architect (Intent Map wins over keyword fallback)
               │
               ▼
 PreToolUse Task → track-agent.sh writes pre-event to agents.jsonl
