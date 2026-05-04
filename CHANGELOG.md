@@ -36,6 +36,7 @@ Smart routing, rich context at session start, project bootstrap wizard. **No bre
 ### Migration from v2.1
 
 No action required. All changes are additive:
+
 - Existing operators get richer SessionStart automatically (re-run `bash install.sh global` to copy refactored hook + scripts).
 - New operators benefit from `/onboard-project` immediately.
 - token-saver threshold change (60→70%) is a heuristic tuning; no operator action needed.
