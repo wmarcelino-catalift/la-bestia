@@ -1,6 +1,8 @@
 ---
 name: token-saver
-description: "Active token-saving tactics: model routing (opusplan/haiku for exploration), diff-output, /compact at breakpoints, .claudeignore, 3-layer memory rule. Auto-activate when context >60% full, when reading >5 files, or when prompt mentions 'optimizar', 'caro', 'ahorrar', 'tokens'."
+version: 2.0.0
+description: "Active token-saving tactics: model routing, /compact at 70%, diff-output, 3-layer memory rule, subagent Haiku for exploration. Auto-activate when context > 70%, when reading > 5 files, or when prompt mentions 'optimizar', 'caro', 'ahorrar', 'tokens', '$'."
+triggers: [optimizar, caro, ahorrar, tokens, "$", compact, "context full"]
 ---
 
 # Token Saver — Tácticas activas
@@ -109,16 +111,20 @@ Cuando pidas algo a Claude, indicá formato:
 - "solo bullet points"
 - "diff format"
 
-## Heurística rápida
+## Heurística rápida (v3.0 — más agresiva)
 
-| Síntoma                                | Acción                         |
-| -------------------------------------- | ------------------------------ |
-| Contexto >60%                          | `/compact` con instrucciones   |
-| Vas a leer >10 archivos                | Spawn subagent Haiku           |
-| Tarea distinta a la previa             | `/clear`                       |
-| Decisión cara/irreversible             | Plan mode (Opus)               |
-| Refactor masivo idéntico en N archivos | Switch a Haiku                 |
-| Bug que no cede                        | Switch a Opus + debugger agent |
+| Síntoma                                | Acción                                                                     |
+| -------------------------------------- | -------------------------------------------------------------------------- |
+| Contexto >70%                          | `/compact` con instrucciones (era 60%)                                     |
+| Contexto >85%                          | `/compact` agresivo: drop exploración fallida, conserva decisiones + diffs |
+| Statusline muestra `⚠ $X today`        | revisar costo, considerar `/model haiku` para exploración                  |
+| Statusline muestra `🚨 $X today`       | parar, `/wrap-up`, retomar mañana o switch a haiku                         |
+| Vas a leer >10 archivos                | Spawn subagent Haiku con pregunta concreta                                 |
+| Tarea distinta a la previa             | `/clear`                                                                   |
+| Decisión cara/irreversible             | Plan mode (Opus)                                                           |
+| Refactor masivo idéntico en N archivos | Switch a Haiku                                                             |
+| Bug que no cede                        | Switch a Opus + `@debugger` agent                                          |
+| Sesión >30 turnos                      | `/wrap-up` + `/clear`, retomar fresh                                       |
 
 ## Métricas
 

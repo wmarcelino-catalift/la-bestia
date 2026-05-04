@@ -1,0 +1,30 @@
+name: evals
+
+on:
+  workflow_dispatch:
+    inputs:
+      agent:
+        description: "Agent name (or 'all')"
+        required: false
+        default: "all"
+
+jobs:
+  run-evals:
+    name: Run snapshot evals
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run evals
+        run: |
+          if [ "${{ inputs.agent }}" = "all" ]; then
+            bash evals/run.sh
+          else
+            bash evals/run.sh "${{ inputs.agent }}"
+          fi
+      - name: Upload diff report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: eval-diff-report
+          path: evals/_reports/
+          retention-days: 30

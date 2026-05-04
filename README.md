@@ -1,122 +1,153 @@
-# 🐺 LA BESTIA — Claude Code Setup v0.3
+# La Bestia — Claude Code harness · v3.0
 
-> Sistema CTO senior multi-agente para Claude Code.
-> 12 agentes especializados · 11 comandos · 5 hooks · 3 skills · memoria cross-sesión.
-> Local. Bajo tu control. Sin lock-in.
+> A deterministic, tested, MCP-ready harness for Claude Code.
+> **12 archetype-grounded agents** (20+ years framing each) · 12 commands incl. `/flow` orchestration · 5 hooks · 4 skills · 4-layer memory · project-agnostic · zero external vault dependencies.
 
----
-
-## Qué incluye
-
-| Componente | Cantidad | Ejemplos |
-|---|---|---|
-| **Agentes** | 12 | architect, cto-strategist, pm, debugger, test-engineer, security-auditor... |
-| **Comandos** | 11 | `/ship-it`, `/bug-hunt`, `/mobile-audit`, `/parallel-research`, `/cto-review`... |
-| **Hooks** | 5 | block-secrets, inject-context, track-agent, log-agents, log-session |
-| **Skills** | 3 | cto-thinking-system, ship-it, token-saver |
-| **Memoria** | cross-sesión | agent-memory/ + memory/hot-context.md + memory/decisions/ |
-
-## Teams de agentes
-
-| Team | Líder | Cuándo |
-|---|---|---|
-| **STRATEGY** | `cto-strategist` | Nueva feature, roadmap, decisión arquitectónica |
-| **DELIVERY** | `test-engineer` | Implementación, PR, código nuevo |
-| **SAFETY** | `security-auditor` | Pre-merge, auth/payments, deploy |
-| **DOMAIN** | (por contexto) | Firestore content, UX, data layer |
+[![ci](https://img.shields.io/badge/ci-shellcheck%20%2B%20bats%20%2B%20schemas-blue)](.github/workflows/ci.yml)
+[![license](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+[![claude code](https://img.shields.io/badge/runs%20on-claude%20code-orange)](https://claude.com/claude-code)
 
 ---
 
-## Instalación
+## What you get
 
-### Global (una vez, todos los proyectos)
-```bash
-git clone https://github.com/wmarcelino-catalift/la-bestia.git
-cd la-bestia
-bash install.sh global
-```
-
-### Project-local (por repo)
-```bash
-cd mi-proyecto
-git clone https://github.com/wmarcelino-catalift/la-bestia.git /tmp/la-bestia
-bash /tmp/la-bestia/install.sh project .claude
-```
-
-### Windows (PowerShell)
-```powershell
-git clone https://github.com/wmarcelino-catalift/la-bestia.git
-cd la-bestia
-& "C:\Program Files\Git\bin\bash.exe" -c "bash install.sh global"
-```
+| Surface                      | Count | Notes                                                                                                      |
+| ---------------------------- | ----- | ---------------------------------------------------------------------------------------------------------- |
+| Agents                       | 12    | Each grounded in a real-world archetype (Vogels, Linus, Gregg, Schneier, Beck, Norman…). Schema-validated. |
+| Skills                       | 4     | `cto-thinking-system`, `flow-feature` (orchestration), `ship-it`, `token-saver`                            |
+| Slash commands               | 12    | Includes `/flow` Discover→Define→Develop→Deliver pipeline                                                  |
+| Hooks                        | 5     | Each one has a `bats` test, `shellcheck` clean                                                             |
+| Memory layers                | 4     | `<repo>/memory/{hot-context,decisions,patterns}` + `~/.claude/agent-memory/<agent>/`                       |
+| MCP servers wired by default | **0** | Operator opts in — see [`mcp/README.md`](./mcp/README.md)                                                  |
+| External vault dependencies  | **0** | No Obsidian, no Notion, no anything                                                                        |
+| Project-specific assumptions | **0** | Genuinely project-agnostic. Drop into any codebase.                                                        |
+| UI surfaces                  | **0** | Terminal text only                                                                                         |
 
 ---
 
 ## Quickstart
 
 ```bash
-cd cualquier-repo
+git clone https://github.com/wmarcelino-catalift/la-bestia.git
+cd la-bestia
+bash install.sh global             # interactive; installs to ~/.claude/
+
+# verify
+bash ~/.claude/scripts/verify.sh
+
+# inside any project
 claude
-
-# En la sesión:
-/agents          # ver todos los agentes disponibles
-/cto-review      # review CTO del código actual
-/ship-it         # quality gates pre-merge
-/bug-hunt        # debug paralelo 3 capas
+> /agents       # list all 12 agents
+> /flow "<feature>"  # Discover → Define → Develop → Deliver pipeline
+> /cto-review   # senior CTO review of current change
+> /ship-it      # pre-merge quality gates
 ```
+
+Project-scoped install: `bash install.sh project ./.claude` from inside a repo.
+Windows operators: run from Git Bash; PowerShell is not supported.
 
 ---
 
-## Cómo funciona el routing
+## Architecture in one diagram
 
 ```
-Prompt (ES o EN)
-    ↓
-Principal Claude lee CLAUDE.md + agent descriptions (nativo Claude Code)
-    ↓
-Dispatch al agente correcto (o paralelo si hay varios)
-    ↓
-Agentes leen agent-memory/ → ejecutan → escriben hallazgos
-    ↓
-Principal sintetiza → respuesta
+┌──────────────────────────────────────────────────────────────────┐
+│  L7  Operator       (you)                                         │
+│  L6  Constitution   config/CLAUDE.md (5 questions, 10 principles) │
+│  L5  Routing        UserPromptSubmit hook → suggests agent        │
+│  L4  Agents · Skills · Commands                                   │
+│  L3  Safety         block-secrets hook · permission allow/deny    │
+│  L2  Memory         repo/memory + ~/.claude/agent-memory          │
+│  L1  Telemetry      JSONL logs · ccusage cost integration         │
+│  L0  MCP            integrations (operator opt-in)                │
+└──────────────────────────────────────────────────────────────────┘
 ```
+
+Full spec: [`ARCHITECTURE.md`](./ARCHITECTURE.md).
 
 ---
 
-## Requisitos
+## Agent teams
 
-- Claude Code CLI instalado
-- `jq` instalado (`brew install jq` / `apt install jq`)
-- `gh` instalado (opcional, para `/ship-it` con GitHub)
-- Git Bash en Windows (para hooks bash)
-
----
-
-## Estructura del repo
-
-```
-config/
-  agents/          12 agentes especializados
-  commands/        11 slash commands
-  hooks/           5 hooks deterministas
-  scripts/         utilidades (verify, sync, statusline...)
-  skills/          3 skills con auto-trigger
-  agent-memory/    templates vacíos (se pueblan durante sesiones)
-  .claudeignore.example
-  settings.example.json
-  CLAUDE.md        constitución global CTO
-memory/
-  hot-context.md   template de contexto del proyecto
-  decisions/       plantilla para ADRs
-install.sh
-```
+| Team     | Lead(s)                                              | When                                                                       |
+| -------- | ---------------------------------------------------- | -------------------------------------------------------------------------- |
+| Strategy | `strategist`, `architect`, `mentor`                  | New feature, roadmap, build-vs-buy, ADRs, pre-mortem, one-way-door reviews |
+| Delivery | `test-engineer`, `debugger`                          | TDD implementation, root-cause analysis on bugs                            |
+| Quality  | `code-reviewer`, `security`, `optimizer`             | Post-change review, OWASP/threat models, performance + Web Vitals          |
+| Domain   | `devops`, `data-engineer`, `tech-writer`, `designer` | CI/CD + IaC, schemas + queries, docs (Diátaxis), design systems + a11y     |
 
 ---
 
-## Versiones
+## Production-grade by default
 
-| Versión | Agentes | Fecha |
-|---|---|---|
-| v0.3 | 12 agentes, inter-agent memory, bilingual routing | 2026-05-03 |
-| v0.2 | 10 agentes, 11 comandos, routing ES/EN | 2026-05-03 |
-| v0.1 | 6 agentes, hooks básicos | 2026-05-01 |
+This harness ships with the foundation we'd expect from a real engineering org:
+
+- **CI gates**: shellcheck, bats, JSON Schema validation on every PR (`.github/workflows/ci.yml`).
+- **Tests**: `bats` test suite for hooks (`tests/hooks/*.bats`); run with `bash tests/run.sh`.
+- **Schemas**: agent, skill, settings, log-event JSON Schemas in `schemas/`.
+- **Evals**: snapshot eval framework in `evals/` for regression detection on agent outputs.
+- **Governance**: `CHANGELOG.md` (Keep a Changelog), `CONTRIBUTING.md`, `SECURITY.md`, `CODEOWNERS`.
+- **Templates**: `_TEMPLATE.md` for agents, skills, commands; `memory/templates/` for ADRs and patterns.
+
+If you've worked in shops with these things, this should feel familiar. If you haven't, [`CONTRIBUTING.md`](./CONTRIBUTING.md) walks the new-agent / new-hook recipes step by step.
+
+---
+
+## Memory model (in 30 seconds)
+
+1. **`<repo>/memory/hot-context.md`** — read at session start. ≤ 200 tokens.
+2. **`<repo>/memory/decisions/`** — ADRs (one-way doors).
+3. **`<repo>/memory/patterns/`** — reusable solutions for this repo.
+4. **`~/.claude/agent-memory/<agent>/MEMORY.md`** — per-agent, cross-session.
+
+No Obsidian. No external sync. No vendor lock-in.
+
+---
+
+## MCP — operator opt-in
+
+The harness installs zero MCP servers. Patterns for the common ones live in [`mcp/README.md`](./mcp/README.md):
+
+```bash
+claude mcp add github --scope user --env GITHUB_PERSONAL_ACCESS_TOKEN="$GITHUB_PAT" -- \
+  npx -y @modelcontextprotocol/server-github
+```
+
+GitHub · Postgres · Linear · Sentry · Slack · Filesystem — wire what you need, leave the rest.
+
+---
+
+## Documentation map
+
+- [`ARCHITECTURE.md`](./ARCHITECTURE.md) — system design, layer contracts, performance budgets
+- [`CHANGELOG.md`](./CHANGELOG.md) — version history (Keep a Changelog)
+- [`CONTRIBUTING.md`](./CONTRIBUTING.md) — dev loop, commit format, recipes for new agents/hooks
+- [`SECURITY.md`](./SECURITY.md) — threat model, reporting, hardening checklist
+- [`docs/HOW-IT-WORKS.md`](./docs/HOW-IT-WORKS.md) — runtime walkthrough of a session
+- [`mcp/README.md`](./mcp/README.md) — MCP integration templates
+- [`evals/README.md`](./evals/README.md) — eval framework
+- [`memory/decisions/`](./memory/decisions/) — ADRs for the harness itself
+
+---
+
+## Versions
+
+| Version   | Headline                                                                                                                                                                                 | Date           |
+| --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------- |
+| **3.0.0** | **Smart routing (Intent Map in CLAUDE.md), rich SessionStart context (15-stack auto-detect + git richness + cost + last-24h agents), `/onboard-project` bootstrap wizard, statusline budget alerts. ~20-30% token savings vs v2.1.** | **2026-05-04** |
+| 2.1.0 | `bin/flow-viewer.sh` ASCII gantt of sessions, mandatory phase banners in `/flow`, `/status` rewritten (was broken since v1.0), CI runs `tests/scripts/`. No UI surfaces — text only. | 2026-05-04 |
+| 2.0.0     | 18 → 12 archetype-grounded agents (Vogels, Linus, Gregg, Schneier, Beck, Norman…). New `/flow` Discover→Define→Develop→Deliver pipeline. Project-agnostic.                               | 2026-05-03     |
+| 1.1.0     | Hook consolidation (track-agent → log-agents), Makefile, plugin manifest, `bin/compress.sh`, +CI gates.                                                                                  | 2026-05-03     |
+| 1.0.0     | Foundation: tests, CI, schemas, evals, MCP-first. Removed Obsidian, dashboard, flow-diagram, graphify.                                                                                   | 2026-05-03     |
+| 0.4.0     | +6 agents, +1 skill (graphify), levantamiento doc                                                                                                                                        | 2026-05-03     |
+| 0.3.0     | Inter-agent memory templates, bilingual routing                                                                                                                                          | 2026-05-03     |
+| 0.2.0     | 11 slash commands, ES/EN routing                                                                                                                                                         | 2026-05-03     |
+| 0.1.0     | 6 agents, 5 hooks, 3 skills                                                                                                                                                              | 2026-05-01     |
+
+Migration from v0.x: see [`CHANGELOG.md`](./CHANGELOG.md) → `[1.0.0]` → Migration.
+
+---
+
+## License
+
+MIT. See [`LICENSE`](./LICENSE) (TODO).

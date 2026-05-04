@@ -1,0 +1,158 @@
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  lint:
+    name: shellcheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run shellcheck on hooks, scripts, install, bin
+        uses: ludeeus/action-shellcheck@2.0.0
+        with:
+          severity: error
+          ignore_paths: tests
+          additional_files: install.sh
+        env:
+          SHELLCHECK_OPTS: "-e SC1091 -e SC2155 -x"
+
+  schemas:
+    name: schema validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "20" }
+      - run: npm install --no-save ajv-cli ajv-formats
+      - name: Validate settings.example.json
+        run: npx ajv validate -s schemas/settings.schema.json -d config/settings.example.json --strict=false
+      - name: Validate plugin manifest is valid JSON
+        run: node -e "JSON.parse(require('fs').readFileSync('.claude-plugin/plugin.json','utf8')); console.log('ok: .claude-plugin/plugin.json')"
+      - name: Validate JSON files parse
+        run: |
+          for f in schemas/*.json config/settings.example.json; do
+            node -e "JSON.parse(require('fs').readFileSync('$f','utf8')); console.log('ok: $f')"
+          done
+      - name: Agent frontmatter sanity
+        run: bash tests/run.sh schemas
+
+  bats:
+    name: bats — hook tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install bats and jq
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y bats jq
+      - name: Run hook tests
+        run: bats --tap tests/hooks/
+      - name: Run script tests (if any)
+        run: |
+          if [ -d tests/scripts ] && ls tests/scripts/*.bats >/dev/null 2>&1; then
+            bats --tap tests/scripts/
+          else
+            echo "no tests/scripts/ — skipping"
+          fi
+
+  install-smoke:
+    name: install.sh — smoke (project mode)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install jq
+        run: sudo apt-get update -qq && sudo apt-get install -y jq
+      - name: Smoke install into a temp project
+        run: |
+          mkdir -p /tmp/smoke
+          bash install.sh project /tmp/smoke/.claude
+          test -d /tmp/smoke/.claude/agents
+          test -f /tmp/smoke/.claude/settings.json
+          test "$(ls /tmp/smoke/.claude/agents/*.md | wc -l)" -ge 18
+          # Re-run is idempotent
+          bash install.sh project /tmp/smoke/.claude
+
+  no-vault-leftovers:
+    name: no Obsidian / vault references
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Reject reintroduced vault paths
+        run: |
+          set -e
+          BAD=$(grep -rEn 'OBSIDIAN_VAULT|claude-brain|\.claude/vault|live-update\.sh' \
+            --include='*.sh' --include='*.json' \
+            config/ install.sh 2>/dev/null || true)
+          if [ -n "$BAD" ]; then
+            echo "✗ reintroduced vault references in active code paths:"
+            echo "$BAD"
+            exit 1
+          fi
+          echo "✓ no vault references in active code paths"
+
+  conventional-commit:
+    name: conventional commit title (PR only)
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate PR title shape
+        env:
+          TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          if echo "$TITLE" | grep -qE '^(feat|fix|refactor|perf|chore|docs|test|ci|build|style|revert)(\([a-z0-9-]+\))?!?: .{3,}$'; then
+            echo "✓ '$TITLE' matches Conventional Commits"
+          else
+            echo "✗ PR title must follow Conventional Commits."
+            echo "  Got:      '$TITLE'"
+            echo "  Examples: 'feat(agents): add data-engineer'"
+            echo "            'fix(hooks): block-secrets MultiEdit edge case'"
+            echo "            'docs: clarify ADR-0002 reversibility'"
+            exit 1
+          fi
+
+  changelog-gate:
+    name: CHANGELOG updated for feat/fix/refactor/perf (PR only)
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Enforce CHANGELOG entry on substantive PRs
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          set -e
+          if echo "$TITLE" | grep -qE '^(docs|test|chore|ci|build|style)(\(|:)'; then
+            echo "✓ skip: title type does not require CHANGELOG"
+            exit 0
+          fi
+          if echo "$TITLE" | grep -qE '^(feat|fix|refactor|perf|revert)!?(\(|:)'; then
+            CHANGED=$(git diff --name-only "$BASE_SHA...$HEAD_SHA" -- CHANGELOG.md)
+            if [ -z "$CHANGED" ]; then
+              echo "✗ CHANGELOG.md must be updated for $TITLE"
+              echo "  Add an entry under [Unreleased] in CHANGELOG.md."
+              exit 1
+            fi
+            echo "✓ CHANGELOG.md updated"
+          fi
+
+  markdown-soft:
+    name: markdown lint (soft)
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: DavidAnson/markdownlint-cli2-action@v16
+        with:
+          globs: "*.md docs/**/*.md memory/**/*.md"

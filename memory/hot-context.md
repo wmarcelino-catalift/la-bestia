@@ -1,21 +1,30 @@
-# Hot Context — Bestia workspace
+# hot-context.md — La Bestia (workspace)
 
-## Last Updated
-2026-05-01
+> Read FIRST every session. Keep ≤ 200 tokens. Update via `/wrap-up`.
 
-## Propósito
-Lab de configuración de Claude Code. La bestia v0.1 vive en `~/.claude/`.
-Acá se prototipa y se documentan decisiones.
+## Project
 
-## Estructura del workspace
-- `CLAUDE.md` — meta del workspace
-- `README.md` — quickstart de la bestia
-- `memory/decisions/` — ADRs del setup
-- `memory/patterns/` — snippets reusables del flujo Claude Code
-- `_archive/` — backups pre-refactors
+- **Repo:** la-bestia — Claude Code harness (agents, hooks, skills, commands).
+- **Stage:** v1.0 — production-grade refactor (tests, CI, schemas, evals, MCP-first).
+- **Stack:** bash + jq + bats + GitHub Actions. No runtime, no SaaS.
 
-## Estado actual
-v0.1 ejecutada 2026-05-01. Verificar con `bash ~/.claude/scripts/verify.sh`.
+## Current focus
 
-## Active Task
-None — bestia v0.1 deployada.
+- Ship v1.0: deleted UI/vault, added tests/CI/schemas/evals/governance docs.
+- Live `~/.claude/` syncing to repo via `install.sh` (operator-driven, no auto-deploy).
+
+## Recent decisions
+
+- 2026-05-03: v1.0 — see [ADR-0002](decisions/0002-v1.0-refactor.md). Removed Obsidian, dashboard, flow-diagram, graphify.
+- 2026-05-01: v0.1 setup — see [ADR-0001](decisions/0001-bestia-v0.1.md) (superseded by 0002).
+
+## Pending
+
+- [ ] Backfill `evals/agents/<name>/canonical.md` for 17 remaining agents (architect done).
+- [ ] Backfill `tests/hooks/<name>.bats` for `log-agents`, `log-session`, `track-agent`.
+- [ ] Performance test harness `tests/perf/` with p99 budget enforcement.
+
+## Gotchas
+
+- Windows OneDrive sync can lock dirs during rapid `mv` — use `cp` + `rm -rf` instead.
+- Prettier hook reformats markdown tables on every Write; expected, harmless.

@@ -1,7 +1,7 @@
 # ADR 0001 — Bestia v0.1
 
 **Date**: 2026-05-01
-**Status**: Accepted
+**Status**: Superseded by [ADR-0002](./0002-v1.0-refactor.md) (2026-05-03)
 **Supersedes**: previous global+project setup (archived)
 
 ## Context
@@ -30,6 +30,7 @@ Ejecutar **v0.1 podada al 40%** del plan original:
 ## Consequences
 
 ### Positivo
+
 - Setup ejecutable en una sesión, no en 3 días.
 - Cada componente tiene un caso de uso claro y medible.
 - Cero feature inventada (todo es Claude Code real).
@@ -37,11 +38,13 @@ Ejecutar **v0.1 podada al 40%** del plan original:
 - Visualización de agents via JSONL → Mermaid (ROI alto, costo bajo).
 
 ### Negativo
+
 - Falta cobertura para roles que el plan tenía: reliability-engineer, performance-optimizer, refactorer, data-architect, frontend-specialist, devops-engineer, memory-curator, repo-explorer.
 - Sin Agent Teams. Sin MCP de Obsidian. Sin cron.
 - Vault no se actualiza automáticamente — manual hasta que `memory-curator` se setupee.
 
 ### Validation triggers
+
 - Reescribís la misma instrucción 3x/semana → crear skill nuevo.
 - Sesión > 100k tokens → spawn subagent Haiku para exploración.
 - Tarea con dependencias entre 3+ workers → activar Agent Teams.
@@ -49,4 +52,5 @@ Ejecutar **v0.1 podada al 40%** del plan original:
 - Auth/payments en cliente corporativo → security-auditor mandatorio + deny push origin main.
 
 ## Backup
+
 `_archive/2026-05-01-pre-bestia/` (160 KB).

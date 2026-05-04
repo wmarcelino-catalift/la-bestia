@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
-# Stop hook — auto-generate session summary from git + agent logs.
-export PATH="$HOME/bin:$PATH"
+# Stop hook — write a session summary from git + agents.jsonl.
+# No vault. No external viewer. Output: <project>/.claude/logs/sessions/session-<ts>.md
+set -u
 
 PROJ="${CLAUDE_PROJECT_DIR:-$(pwd)}"
 INBOX="$PROJ/.claude/logs/sessions"
+LOG="$PROJ/.claude/logs/agents.jsonl"
 mkdir -p "$INBOX"
 
 CWD=$(pwd)
@@ -15,18 +17,17 @@ BRANCH=$(git branch --show-current 2>/dev/null || echo "unknown")
 UNCOMMITTED=$(git status --short 2>/dev/null | wc -l | tr -d ' ')
 LAST_COMMIT=$(git log -1 --pretty=format:'%h %s' 2>/dev/null || echo "none")
 
-# Agents used this session (from live log, last 2 hours)
+# Agents used in last 24h, ranked by frequency
 AGENTS_USED=""
-LIVE="$PROJ/.claude/logs/live-activity.jsonl"
-if command -v jq >/dev/null 2>&1 && [ -f "$LIVE" ]; then
-  CUTOFF=$(($(date +%s) - 86400))  # 24h window
-  AGENTS_USED=$(tail -500 "$LIVE" 2>/dev/null | \
+if command -v jq >/dev/null 2>&1 && [ -f "$LOG" ]; then
+  CUTOFF=$(($(date +%s) - 86400))
+  AGENTS_USED=$(tail -500 "$LOG" 2>/dev/null | \
     jq -r "select(.epoch != null and .epoch > $CUTOFF and .event == \"post\" and .agent != null and .agent != \"unknown\" and .agent != \"Bash\") | .agent" 2>/dev/null | \
     sort | uniq -c | sort -rn | \
     awk '{print "- " $2 " (" $1 "x)"}' | head -8)
 fi
 
-# Files modified this session
+# Files modified since last commit (best-effort)
 FILES_MODIFIED=$(git diff --name-only HEAD~1..HEAD 2>/dev/null | head -10 | sed 's/^/- /' || echo "- (no commits this session)")
 
 {
@@ -40,7 +41,7 @@ FILES_MODIFIED=$(git diff --name-only HEAD~1..HEAD 2>/dev/null | head -10 | sed 
   echo ""
   echo "**branch**: $BRANCH | **uncommitted**: $UNCOMMITTED | **last**: $LAST_COMMIT"
   echo ""
-  echo "## Agents used"
+  echo "## Agents used (last 24h)"
   if [ -n "$AGENTS_USED" ]; then
     echo "$AGENTS_USED"
   else
@@ -50,7 +51,7 @@ FILES_MODIFIED=$(git diff --name-only HEAD~1..HEAD 2>/dev/null | head -10 | sed 
   echo "## Files modified"
   echo "$FILES_MODIFIED"
   echo ""
-  echo "## Pending (run /wrap-up to fill)"
+  echo "## Pending (run /wrap-up to populate)"
   echo "- [ ] ..."
 } > "$FILE"
 

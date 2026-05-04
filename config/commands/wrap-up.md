@@ -1,46 +1,60 @@
 ---
-description: "Cierra la sesión con un resumen estructurado. Actualiza hot-context.md y vault/HOT.md con pendientes, implementado y acciones externas."
+description: "Closes the session with a structured summary. Updates memory/hot-context.md with what was implemented, what's pending, and external actions."
 ---
 
 # /wrap-up
 
-Generá un resumen de esta sesión y actualizá la memoria del proyecto.
+Generate a session summary and update project memory.
 
-## Pasos
+## Plan (read-only)
 
-1. **REVISAR** la conversación reciente:
-   - ¿Qué se implementó y se commiteó?
-   - ¿Qué se investigó pero no se terminó?
-   - ¿Qué requiere acción fuera del código (Firestore, App Store, contenido)?
+1. **REVIEW** the recent conversation:
+   - What was implemented and committed?
+   - What was investigated but not finished?
+   - What requires action outside the code (config systems, app stores, content, third parties)?
 
-2. **CLASIFICAR** en 3 buckets:
-   - ✅ **Implementado** — en código, commiteado
-   - ⏳ **Pendiente** — identificado pero no iniciado o en progreso
-   - ⚠️ **Acción externa** — Firestore, App Store, diseño, contenido
+2. **CLASSIFY** into 3 buckets:
+   - ✅ **Implemented** — in code, committed
+   - ⏳ **Pending** — identified but not started or in progress
+   - ⚠️ **External action** — outside the codebase
 
-3. **ACTUALIZAR** `memory/hot-context.md`:
-   - Sección `## Pendientes` — reemplazar con lista actualizada
-   - Sección `## Último commit` — hash más reciente (`git log -1 --oneline`)
+3. **DRAFT** the update for `memory/hot-context.md` (do not write yet):
+   - `## Pending` — replace with updated list
+   - `## Recent decisions` — append today's date with one-line decisions
+   - Keep total file ≤ 200 tokens (truncate older entries to ADRs).
 
-4. **ACTUALIZAR** `.claude/vault/HOT.md`:
-   - Agregar entrada en `## Última semana` con fecha ISO y 1-line summary
+## Apply (gated on operator confirmation)
 
-5. **OUTPUT** el resumen al usuario.
+Only after the operator confirms the draft above:
 
-## Formato de output
+1. Write the new `memory/hot-context.md`.
+2. If any decision was a one-way door, prompt the operator to create an ADR with: `cp memory/templates/adr.md memory/decisions/<NNNN>-<slug>.md`.
+
+## Output format
 
 ```
-## Wrap-up — {YYYY-MM-DD}
+## Wrap-up — YYYY-MM-DD
 
-### ✅ Implementado esta sesión
-- [lista con archivo/commit si aplica]
+### ✅ Implemented this session
+- [list with file/commit if applicable]
 
-### ⏳ Pendiente (próxima sesión)
-- [lista ordenada por prioridad]
+### ⏳ Pending (next session)
+- [list ordered by priority]
 
-### ⚠️ Requiere acción externa
-- [lista con responsable si se sabe]
+### ⚠️ Requires external action
+- [list with owner if known]
 
-### 📁 Archivos modificados clave
-- [lista de los más importantes]
+### 📁 Key files modified
+- [list of the most important]
+
+### 📝 Proposed memory update
+[draft of the hot-context.md replacement — operator approves or edits]
 ```
+
+## Idempotency
+
+Running `/wrap-up` twice in the same session produces the same plan (same draft). Apply step is gated, so re-running without confirmation is safe.
+
+## Chains
+
+- `@cto-strategist` if any pending item is a one-way-door decision.

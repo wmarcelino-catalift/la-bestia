@@ -1,0 +1,26 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/wmarcelino-catalift/la-bestia/schemas/log-event.schema.json",
+  "title": "La Bestia — JSONL log event",
+  "description": "One line of agents.jsonl or bash.jsonl. Used by /status, eval reports, and incident review.",
+  "type": "object",
+  "required": ["ts", "event"],
+  "additionalProperties": false,
+  "properties": {
+    "ts": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 UTC"
+    },
+    "epoch": { "type": "integer" },
+    "session": { "type": "string" },
+    "event": { "type": "string", "enum": ["pre", "post", "agent", "bash"] },
+    "tool": { "type": "string" },
+    "agent": { "type": "string" },
+    "desc": { "type": "string", "maxLength": 500 },
+    "cmd": { "type": "string", "maxLength": 500 },
+    "duration": { "type": ["integer", "null"] },
+    "cwd": { "type": "string" },
+    "note": { "type": "string" }
+  }
+}

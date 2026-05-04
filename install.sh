@@ -1,132 +1,200 @@
 #!/usr/bin/env bash
-# La Bestia v0.3 — install.sh
-# Instala la configuración CTO senior de Claude Code (global o project-local).
-# Safe to re-run (idempotente).
+# La Bestia v1.0 — install.sh
+# Idempotent. Safe to re-run. Backs up existing config before overwriting.
+#
+# Usage:
+#   bash install.sh                       # interactive (asks global vs project)
+#   bash install.sh global                # install to ~/.claude/
+#   bash install.sh project [path]        # install to <path>/.claude/ (default: ./.claude)
+#   bash install.sh --check               # verify-only mode (no writes)
+#
+# Does NOT register any MCP servers. See mcp/README.md for opt-in templates.
 
-set -e
+set -euo pipefail
 
-MODE="${1:-global}"  # global | project
-if [ "$MODE" = "project" ]; then
-  CLAUDE_DIR="${2:-.claude}"
-  echo "=== La Bestia v0.3 — Project-local install in $CLAUDE_DIR ==="
+VERSION="1.0.0"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$SCRIPT_DIR"
+
+# ── arg parsing ──────────────────────────────────────────────────────────────
+MODE=""
+PROJ_PATH=""
+CHECK_ONLY=0
+
+if [ $# -eq 0 ]; then
+  echo "=== La Bestia v$VERSION installer ==="
+  echo ""
+  echo "Where do you want to install?"
+  echo "  1) global  → ~/.claude/      (one-time, all projects)"
+  echo "  2) project → ./.claude/      (per-repo)"
+  echo "  3) check   → verify only, no changes"
+  read -rp "[1/2/3]: " choice
+  case "$choice" in
+    1) MODE="global" ;;
+    2) MODE="project"; PROJ_PATH="${PWD}/.claude" ;;
+    3) CHECK_ONLY=1; MODE="global" ;;
+    *) echo "aborted." >&2; exit 1 ;;
+  esac
 else
-  CLAUDE_DIR="$HOME/.claude"
-  echo "=== La Bestia v0.3 — Global install in $CLAUDE_DIR ==="
+  case "${1:-}" in
+    global)   MODE="global" ;;
+    project)  MODE="project"; PROJ_PATH="${2:-./.claude}"; PROJ_PATH="$(cd "$(dirname "$PROJ_PATH")" && pwd)/$(basename "$PROJ_PATH")" ;;
+    --check)  CHECK_ONLY=1; MODE="global" ;;
+    -h|--help)
+      sed -n '2,15p' "$0"; exit 0 ;;
+    *) echo "unknown arg: $1" >&2; exit 2 ;;
+  esac
 fi
 
-# Backup
-if [ -d "$CLAUDE_DIR" ] && [ "$(ls -A "$CLAUDE_DIR" 2>/dev/null)" ]; then
-  BACKUP="${CLAUDE_DIR}/_backup_$(date +%Y%m%d_%H%M%S)"
-  echo "→ Backing up to $BACKUP"
-  cp -r "$CLAUDE_DIR" "$BACKUP"
+# ── target dir ───────────────────────────────────────────────────────────────
+if [ "$MODE" = "global" ]; then
+  TARGET="$HOME/.claude"
+else
+  TARGET="$PROJ_PATH"
+fi
+echo "→ target: $TARGET"
+
+# ── check-only mode ──────────────────────────────────────────────────────────
+if [ "$CHECK_ONLY" -eq 1 ]; then
+  if [ -f "$TARGET/scripts/verify.sh" ]; then
+    bash "$TARGET/scripts/verify.sh"
+    exit $?
+  else
+    echo "✗ verify.sh not found at $TARGET — install first."
+    exit 1
+  fi
 fi
 
-# Directory structure
+# ── deps preflight ───────────────────────────────────────────────────────────
+need_cmd() { command -v "$1" >/dev/null 2>&1 || { echo "✗ missing: $1 (install it and re-run)" >&2; return 1; }; }
+
+echo "→ preflight..."
+need_cmd git || exit 1
+need_cmd bash || exit 1
+command -v jq >/dev/null 2>&1 || echo "  ⚠ jq not found — hooks will degrade gracefully but you'll get less detail. Install: brew install jq | apt install jq"
+
+# ── backup ───────────────────────────────────────────────────────────────────
+if [ -d "$TARGET" ] && [ -n "$(ls -A "$TARGET" 2>/dev/null)" ]; then
+  BACKUP="${TARGET}/_backup_$(date +%Y%m%d_%H%M%S)"
+  echo "→ backing up existing config to $BACKUP"
+  mkdir -p "$BACKUP"
+  for d in agents skills commands hooks scripts; do
+    [ -d "$TARGET/$d" ] && cp -r "$TARGET/$d" "$BACKUP/" 2>/dev/null || true
+  done
+  [ -f "$TARGET/settings.json" ] && cp "$TARGET/settings.json" "$BACKUP/" 2>/dev/null || true
+  [ -f "$TARGET/CLAUDE.md" ] && cp "$TARGET/CLAUDE.md" "$BACKUP/" 2>/dev/null || true
+fi
+
+# ── directories ──────────────────────────────────────────────────────────────
 mkdir -p \
-  "$CLAUDE_DIR/agents" \
-  "$CLAUDE_DIR/hooks" \
-  "$CLAUDE_DIR/scripts" \
-  "$CLAUDE_DIR/commands" \
-  "$CLAUDE_DIR/skills/cto-thinking-system" \
-  "$CLAUDE_DIR/skills/ship-it" \
-  "$CLAUDE_DIR/skills/token-saver" \
-  "$CLAUDE_DIR/logs/sessions" \
-  "$CLAUDE_DIR/vault" \
-  "$CLAUDE_DIR/agent-memory/architect" \
-  "$CLAUDE_DIR/agent-memory/cto-strategist" \
-  "$CLAUDE_DIR/agent-memory/pm" \
-  "$CLAUDE_DIR/agent-memory/debugger" \
-  "$CLAUDE_DIR/agent-memory/test-engineer" \
-  "$CLAUDE_DIR/agent-memory/code-reviewer" \
-  "$CLAUDE_DIR/agent-memory/security-auditor" \
-  "$CLAUDE_DIR/agent-memory/mobile-reviewer" \
-  "$CLAUDE_DIR/agent-memory/devops" \
-  "$CLAUDE_DIR/agent-memory/ux-reviewer" \
-  "$CLAUDE_DIR/agent-memory/content-manager" \
-  "$CLAUDE_DIR/agent-memory/data-engineer"
+  "$TARGET/agents" \
+  "$TARGET/skills" \
+  "$TARGET/commands" \
+  "$TARGET/hooks" \
+  "$TARGET/scripts" \
+  "$TARGET/logs/sessions" \
+  "$TARGET/agent-memory"
 
-# Copy agent-memory templates (don't overwrite if populated)
-for agent_dir in config/agent-memory/*/; do
-  agent=$(basename "$agent_dir")
-  target="$CLAUDE_DIR/agent-memory/$agent/MEMORY.md"
-  if [ ! -f "$target" ]; then
-    cp "$agent_dir/MEMORY.md" "$target"
+# ── copy components ──────────────────────────────────────────────────────────
+echo "→ installing agents..."
+cp config/agents/*.md "$TARGET/agents/"
+# Strip the template (not an agent)
+rm -f "$TARGET/agents/_TEMPLATE.md"
+
+echo "→ installing skills..."
+for skill_dir in config/skills/*/; do
+  skill_name=$(basename "$skill_dir")
+  [ "$skill_name" = "_TEMPLATE" ] && continue
+  mkdir -p "$TARGET/skills/$skill_name"
+  cp -r "$skill_dir"* "$TARGET/skills/$skill_name/" 2>/dev/null || true
+done
+
+echo "→ installing commands..."
+cp config/commands/*.md "$TARGET/commands/"
+rm -f "$TARGET/commands/_TEMPLATE.md"
+
+echo "→ installing hooks..."
+cp config/hooks/*.sh "$TARGET/hooks/"
+chmod +x "$TARGET/hooks/"*.sh
+
+echo "→ installing scripts..."
+cp config/scripts/*.sh "$TARGET/scripts/"
+chmod +x "$TARGET/scripts/"*.sh
+
+# ── settings.json ────────────────────────────────────────────────────────────
+if [ ! -f "$TARGET/settings.json" ]; then
+  echo "→ installing settings.json..."
+  cp config/settings.example.json "$TARGET/settings.json"
+else
+  echo "  ⚠ settings.json already exists — not overwriting (your custom settings are preserved)"
+fi
+
+# ── CLAUDE.md (global only) ──────────────────────────────────────────────────
+if [ "$MODE" = "global" ]; then
+  echo "→ installing global CLAUDE.md..."
+  cp config/CLAUDE.md "$TARGET/CLAUDE.md"
+fi
+
+# ── agent-memory templates (don't overwrite operator memory) ─────────────────
+for f in "$TARGET/agents"/*.md; do
+  agent=$(basename "$f" .md)
+  mem_dir="$TARGET/agent-memory/$agent"
+  mkdir -p "$mem_dir"
+  if [ ! -f "$mem_dir/MEMORY.md" ]; then
+    cat > "$mem_dir/MEMORY.md" <<EOF
+# $agent — agent memory
+
+> Persistent notes across sessions. Updated by the agent itself when consequential.
+
+## Patterns learned
+- (empty — populated during real sessions)
+
+## Decisions context
+- (empty)
+
+## Gotchas
+- (empty)
+EOF
   fi
 done
 
-# Agents (12)
-echo "→ Installing 12 agents..."
-cp config/agents/*.md "$CLAUDE_DIR/agents/"
-
-# Hooks (5)
-echo "→ Installing hooks..."
-cp config/hooks/*.sh "$CLAUDE_DIR/hooks/"
-chmod +x "$CLAUDE_DIR/hooks/"*.sh
-
-# Scripts
-echo "→ Installing scripts..."
-cp config/scripts/*.sh "$CLAUDE_DIR/scripts/"
-chmod +x "$CLAUDE_DIR/scripts/"*.sh
-
-# Commands (11)
-echo "→ Installing commands..."
-cp config/commands/*.md "$CLAUDE_DIR/commands/"
-
-# Skills (3)
-echo "→ Installing skills..."
-cp -r config/skills/cto-thinking-system "$CLAUDE_DIR/skills/"
-cp -r config/skills/ship-it "$CLAUDE_DIR/skills/"
-cp -r config/skills/token-saver "$CLAUDE_DIR/skills/"
-
-# CLAUDE.md (global only — project has its own)
-if [ "$MODE" = "global" ]; then
-  echo "→ Installing global CLAUDE.md..."
-  cp config/CLAUDE.md "$CLAUDE_DIR/CLAUDE.md"
-fi
-
-# settings.json
-if [ ! -f "$CLAUDE_DIR/settings.json" ]; then
-  echo "→ Installing settings.json..."
-  cp config/settings.example.json "$CLAUDE_DIR/settings.json"
-  echo "  ⚠ Edit settings.json — set GOOGLE_APPLICATION_CREDENTIALS if needed."
-else
-  echo "  ⚠ settings.json already exists — not overwriting."
-fi
-
-# .claudeignore (project only)
+# ── project-only: memory + .claudeignore ─────────────────────────────────────
 if [ "$MODE" = "project" ]; then
-  PROJ_ROOT=$(dirname "$CLAUDE_DIR")
-  if [ ! -f "$PROJ_ROOT/.claudeignore" ]; then
-    cp config/.claudeignore.example "$PROJ_ROOT/.claudeignore"
-    echo "→ Installed .claudeignore"
-  fi
-  # Memory dirs
-  mkdir -p "$PROJ_ROOT/memory/decisions"
+  PROJ_ROOT="$(dirname "$TARGET")"
+  mkdir -p "$PROJ_ROOT/memory/decisions" "$PROJ_ROOT/memory/patterns" "$PROJ_ROOT/memory/templates"
+  [ -f "memory/templates/adr.md" ] && cp memory/templates/adr.md "$PROJ_ROOT/memory/templates/" 2>/dev/null || true
+  [ -f "memory/templates/pattern.md" ] && cp memory/templates/pattern.md "$PROJ_ROOT/memory/templates/" 2>/dev/null || true
   if [ ! -f "$PROJ_ROOT/memory/hot-context.md" ]; then
     cp memory/hot-context.md "$PROJ_ROOT/memory/hot-context.md"
-    echo "→ Installed memory/hot-context.md template — fill in your project details."
+    echo "  ✓ memory/hot-context.md (template — fill in for your project)"
+  fi
+  if [ ! -f "$PROJ_ROOT/memory/decisions/README.md" ] && [ -f memory/decisions/README.md ]; then
+    cp memory/decisions/README.md "$PROJ_ROOT/memory/decisions/README.md"
+  fi
+  if [ ! -f "$PROJ_ROOT/.claudeignore" ] && [ -f config/.claudeignore.example ]; then
+    cp config/.claudeignore.example "$PROJ_ROOT/.claudeignore"
+    echo "  ✓ .claudeignore"
   fi
 fi
 
-# MCP servers (optional)
+# ── verify ───────────────────────────────────────────────────────────────────
 echo ""
-echo "→ Registering MCP servers (optional)..."
-claude mcp add vault --scope user -- npx -y @modelcontextprotocol/server-filesystem "$HOME/Obsidian/claude-brain" 2>/dev/null && echo "  ✓ vault MCP" || echo "  ⚠ vault MCP skipped"
-claude mcp add memory --scope user -- npx -y @modelcontextprotocol/server-memory 2>/dev/null && echo "  ✓ memory MCP" || echo "  ⚠ memory MCP skipped"
-
-# Verify
-echo ""
-echo "→ Verifying..."
-if [ -f "$CLAUDE_DIR/scripts/verify.sh" ]; then
-  CLAUDE_PROJECT_DIR="$(dirname "$CLAUDE_DIR")" bash "$CLAUDE_DIR/scripts/verify.sh" 2>/dev/null | tail -3
+echo "→ verifying..."
+if [ -f "$TARGET/scripts/verify.sh" ]; then
+  CLAUDE_PROJECT_DIR="$([ "$MODE" = "project" ] && dirname "$TARGET")" \
+    bash "$TARGET/scripts/verify.sh" || {
+      echo ""
+      echo "⚠ verification reported failures. The install completed but something is off."
+      exit 1
+    }
 fi
 
 echo ""
-echo "=== Done! La Bestia v0.3 installed ==="
+echo "=== ✅ La Bestia v$VERSION installed ($MODE mode) ==="
 echo ""
 echo "Next steps:"
-echo "  1. Edit $CLAUDE_DIR/settings.json (model, permissions)"
-echo "  2. Run: claude (in any project)"
-echo "  3. Test: /agents"
+echo "  1. Inspect $TARGET/settings.json — adjust permissions to your taste."
+echo "  2. (Optional) Wire MCP servers — see la-bestia/mcp/README.md."
+echo "  3. Run \`claude\` in any project. Try /agents, /cto-review, /ship-it."
 echo ""
-echo "Windows users: run bestia.ps1 from PowerShell for the 3-pane layout."
+echo "Migrating from v0.x? See CHANGELOG.md → [1.0.0] → Migration."

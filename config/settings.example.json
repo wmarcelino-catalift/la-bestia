@@ -1,90 +1,218 @@
 {
   "env": {
     "DISABLE_NON_ESSENTIAL_MODEL_CALLS": "1",
-    "CLAUDE_CODE_MAX_OUTPUT_TOKENS": "8000",
-    "OBSIDIAN_VAULT": "$HOME/Obsidian/claude-brain"
-  },
-  "permissions": {
-    "allow": [
-      "Read", "Glob", "Grep",
-      "Bash(git status*)", "Bash(git log*)", "Bash(git diff*)",
-      "Bash(git branch*)", "Bash(git show*)", "Bash(git rev-parse*)",
-      "Bash(ls *)", "Bash(cat *)", "Bash(head *)", "Bash(tail *)",
-      "Bash(wc *)", "Bash(find *)", "Bash(jq *)",
-      "Bash(ccusage*)", "Bash(bash ~/.claude/scripts/*)"
-    ],
-    "deny": [
-      "Bash(rm -rf /)", "Bash(rm -rf /*)", "Bash(rm -rf ~)",
-      "Bash(rm -rf $HOME*)", "Bash(sudo rm -rf*)",
-      "Bash(DROP DATABASE*)", "Bash(DROP TABLE*)", "Bash(TRUNCATE*)",
-      "Bash(mkfs*)", "Bash(dd if=*)", "Bash(chmod 777*)",
-      "Bash(curl * | bash)", "Bash(curl * | sh)",
-      "Bash(wget * | bash)", "Bash(wget * | sh)",
-      "Bash(git push --force*)", "Bash(git push -f*)",
-      "Bash(git reset --hard*)", "Bash(npm publish*)",
-      "Write(**/.env)", "Write(**/.env.*)", "Write(**/*.pem)",
-      "Write(**/*.key)", "Write(**/*.p12)", "Write(**/*.pfx)",
-      "Write(**/credentials*.json)", "Write(**/service-account*.json)",
-      "Write(**/firebase-adminsdk*.json)", "Write(**/id_rsa*)",
-      "Edit(**/.env)", "Edit(**/.env.*)", "Edit(**/*.pem)",
-      "Edit(**/*.key)", "Edit(**/credentials*.json)",
-      "Edit(**/service-account*.json)", "Edit(**/firebase-adminsdk*.json)"
-    ],
-    "ask": [
-      "Bash(git push*)", "Bash(npm install*)", "Bash(pip install*)",
-      "Bash(brew install*)", "Bash(docker run*)", "Bash(docker build*)"
-    ]
+    "CLAUDE_CODE_MAX_OUTPUT_TOKENS": "8000"
   },
   "model": "opusplan",
+  "theme": "dark",
+  "autoUpdatesChannel": "latest",
+  "effortLevel": "high",
+  "permissions": {
+    "allow": [
+      "Read",
+      "Write",
+      "Glob",
+      "Grep",
+      "Bash(npm test *)",
+      "Bash(npm run *)",
+      "Bash(npm install *)",
+      "Bash(npm ci *)",
+      "Bash(npm audit *)",
+      "Bash(npm outdated *)",
+      "Bash(npm list *)",
+      "Bash(npx prettier *)",
+      "Bash(npx eslint *)",
+      "Bash(npx tsc *)",
+      "Bash(npx vitest *)",
+      "Bash(npx jest *)",
+      "Bash(npx playwright *)",
+      "Bash(node *)",
+      "Bash(git status *)",
+      "Bash(git log *)",
+      "Bash(git diff *)",
+      "Bash(git branch *)",
+      "Bash(git show *)",
+      "Bash(git stash *)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git checkout *)",
+      "Bash(git switch *)",
+      "Bash(git merge *)",
+      "Bash(git pull *)",
+      "Bash(git fetch *)",
+      "Bash(git remote *)",
+      "Bash(git rev-parse *)",
+      "Bash(python -m pytest *)",
+      "Bash(python -m ruff *)",
+      "Bash(python -m black *)",
+      "Bash(python -m mypy *)",
+      "Bash(python *)",
+      "Bash(pip install *)",
+      "Bash(pip list *)",
+      "Bash(pip audit *)",
+      "Bash(go test *)",
+      "Bash(go build *)",
+      "Bash(go run *)",
+      "Bash(go vet *)",
+      "Bash(cargo test *)",
+      "Bash(cargo build *)",
+      "Bash(cargo clippy *)",
+      "Bash(cargo run *)",
+      "Bash(docker build *)",
+      "Bash(docker compose *)",
+      "Bash(docker ps *)",
+      "Bash(docker logs *)",
+      "Bash(jq *)",
+      "Bash(ccusage *)",
+      "Bash(cat *)",
+      "Bash(head *)",
+      "Bash(tail *)",
+      "Bash(wc *)",
+      "Bash(find *)",
+      "Bash(ls *)",
+      "Bash(dir *)",
+      "Bash(sort *)",
+      "Bash(diff *)",
+      "Bash(echo *)",
+      "Bash(type *)",
+      "Bash(mkdir *)",
+      "Bash(touch *)",
+      "Bash(curl -s *)",
+      "Bash(bash ~/.claude/scripts/*)",
+      "Bash(Get-Content *)",
+      "Bash(Get-ChildItem *)",
+      "Bash(Test-Path *)",
+      "Bash(Select-String *)"
+    ],
+    "deny": [
+      "Bash(rm -rf /)",
+      "Bash(rm -rf /*)",
+      "Bash(rm -rf ~)",
+      "Bash(rm -rf $HOME*)",
+      "Bash(sudo rm -rf*)",
+      "Bash(del /s /q C:\\*)",
+      "Bash(format *)",
+      "Bash(shutdown *)",
+      "Bash(taskkill *)",
+      "Bash(DROP DATABASE*)",
+      "Bash(DROP TABLE*)",
+      "Bash(TRUNCATE*)",
+      "Bash(truncate *)",
+      "Bash(mkfs*)",
+      "Bash(dd if=*)",
+      "Bash(chmod 777*)",
+      "Bash(curl * | bash)",
+      "Bash(curl * | sh)",
+      "Bash(wget * | bash)",
+      "Bash(wget * | sh)",
+      "Bash(git push --force*)",
+      "Bash(git push -f*)",
+      "Bash(git reset --hard*)",
+      "Bash(npm publish*)",
+      "Write(**/.env)",
+      "Write(**/.env.*)",
+      "Write(**/*.pem)",
+      "Write(**/*.key)",
+      "Write(**/*.p12)",
+      "Write(**/*.pfx)",
+      "Write(**/credentials*.json)",
+      "Write(**/service-account*.json)",
+      "Write(**/firebase-adminsdk*.json)",
+      "Write(**/id_rsa*)",
+      "Edit(**/.env)",
+      "Edit(**/.env.*)",
+      "Edit(**/*.pem)",
+      "Edit(**/*.key)",
+      "Edit(**/credentials*.json)",
+      "Edit(**/service-account*.json)",
+      "Edit(**/firebase-adminsdk*.json)"
+    ],
+    "ask": ["Bash(git push*)", "Bash(brew install*)", "Bash(docker run*)"]
+  },
   "hooks": {
     "PreToolUse": [
       {
         "matcher": "Bash",
-        "hooks": [{
-          "type": "command",
-          "command": "CMD=$(echo \"$CLAUDE_TOOL_INPUT\" | jq -r '.command // \"\"'); echo \"$CMD\" | grep -qE '\\brm -rf /|\\bDROP (TABLE|DATABASE)|\\bTRUNCATE\\b|\\bgit push.*--force.*(main|master)|sudo rm -rf|>\\s*/dev/sd[a-z]' && { echo 'BLOCKED: dangerous command detected' >&2; exit 2; }; exit 0",
-          "async": true
-        }]
+        "hooks": [
+          {
+            "type": "command",
+            "command": "CMD=$(echo \"$CLAUDE_TOOL_INPUT\" | jq -r '.command // \"\"'); echo \"$CMD\" | grep -qE '\\brm -rf /|\\bDROP (TABLE|DATABASE)|\\bTRUNCATE\\b|\\bgit push.*--force.*(main|master)|sudo rm -rf|>\\s*/dev/sd[a-z]' && { echo 'BLOCKED: dangerous command detected' >&2; exit 2; }; exit 0",
+            "async": true
+          }
+        ]
       },
       {
         "matcher": "Write|Edit|MultiEdit",
-        "hooks": [{"type": "command", "command": "bash ~/.claude/hooks/block-secrets.sh"}]
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$HOME/.claude/hooks/block-secrets.sh\""
+          }
+        ]
       },
       {
-        "matcher": "Task|Bash|Write|Edit|Read",
-        "hooks": [{"type": "command", "command": "bash ~/.claude/scripts/live-update.sh pre \"$(echo $CLAUDE_TOOL_NAME)\" 2>/dev/null", "async": true}]
+        "matcher": "Task",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$HOME/.claude/hooks/log-agents.sh\" pre"
+          }
+        ]
       }
     ],
     "PostToolUse": [
       {
         "matcher": "Write|Edit|MultiEdit",
-        "hooks": [{
-          "type": "command",
-          "command": "FILE=$(echo \"$CLAUDE_TOOL_INPUT\" | jq -r '.file_path // .new_path // \"\"'); if [ -z \"$FILE\" ] || [ ! -f \"$FILE\" ]; then exit 0; fi; case \"$FILE\" in *.ts|*.tsx|*.js|*.jsx|*.json|*.css|*.html) command -v npx >/dev/null 2>&1 && npx --no-install prettier --write \"$FILE\" 2>/dev/null ;; *.py) command -v ruff >/dev/null 2>&1 && ruff format \"$FILE\" 2>/dev/null ;; *.go) command -v gofmt >/dev/null 2>&1 && gofmt -w \"$FILE\" 2>/dev/null ;; esac; exit 0"
-        }]
+        "hooks": [
+          {
+            "type": "command",
+            "command": "FILE=$(echo \"$CLAUDE_TOOL_INPUT\" | jq -r '.file_path // .new_path // \"\"'); if [ -z \"$FILE\" ] || [ ! -f \"$FILE\" ]; then exit 0; fi; case \"$FILE\" in *.ts|*.tsx|*.js|*.jsx|*.json|*.css|*.html) command -v npx >/dev/null 2>&1 && npx --no-install prettier --write \"$FILE\" 2>/dev/null ;; *.py) command -v ruff >/dev/null 2>&1 && ruff format \"$FILE\" 2>/dev/null ;; *.go) command -v gofmt >/dev/null 2>&1 && gofmt -w \"$FILE\" 2>/dev/null ;; esac; exit 0"
+          }
+        ]
       },
       {
         "matcher": "Task|Bash",
-        "hooks": [{"type": "command", "command": "bash ~/.claude/hooks/log-agents.sh"}]
-      },
-      {
-        "matcher": "Task|Bash|Write|Edit|Read",
-        "hooks": [{"type": "command", "command": "bash ~/.claude/scripts/live-update.sh post \"$(echo $CLAUDE_TOOL_NAME)\" 2>/dev/null", "async": true}]
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$HOME/.claude/hooks/log-agents.sh\" post"
+          }
+        ]
       }
     ],
     "SessionStart": [
-      {"hooks": [{"type": "command", "command": "bash ~/.claude/hooks/inject-context.sh"}]}
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$HOME/.claude/hooks/inject-context.sh\""
+          }
+        ]
+      }
     ],
     "UserPromptSubmit": [
-      {"hooks": [{"type": "command", "command": "bash ~/.claude/hooks/route-prompt.sh"}]}
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$HOME/.claude/hooks/route-prompt.sh\""
+          }
+        ]
+      }
     ],
     "Stop": [
-      {"hooks": [{"type": "command", "command": "bash ~/.claude/hooks/log-session.sh"}]}
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$HOME/.claude/hooks/log-session.sh\""
+          }
+        ]
+      }
     ]
   },
   "statusLine": {
     "type": "command",
-    "command": "bash ~/.claude/scripts/statusline.sh"
-  },
-  "effortLevel": "medium"
+    "command": "bash \"$HOME/.claude/scripts/statusline.sh\""
+  }
 }

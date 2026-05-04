@@ -1,0 +1,22 @@
+# CODEOWNERS — review requirements
+# Format: <pattern>  <owner>  [<owner>...]
+# Owners get auto-requested on PRs touching matching paths.
+
+# Default: maintainer reviews everything.
+*                                       @wmarcelino-catalift
+
+# Hooks and scripts — security-sensitive surface.
+/config/hooks/                          @wmarcelino-catalift
+/config/scripts/                        @wmarcelino-catalift
+/install.sh                             @wmarcelino-catalift
+
+# Schemas — breaking change surface.
+/schemas/                               @wmarcelino-catalift
+
+# Constitution & architecture — must not drift without sign-off.
+/config/CLAUDE.md                       @wmarcelino-catalift
+/ARCHITECTURE.md                        @wmarcelino-catalift
+/SECURITY.md                            @wmarcelino-catalift
+
+# CI — change carefully.
+/.github/                               @wmarcelino-catalift

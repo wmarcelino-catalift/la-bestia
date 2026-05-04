@@ -1,21 +1,31 @@
 #!/usr/bin/env bash
+# Statusline (v3.0) — single line printed in Claude Code's status bar.
+# Source: agents.jsonl + ccusage + JSON input on stdin.
+#
+# Output shape:
+#   🐺 La Bestia · <model> [· ⚡<active>] [· <last-agent> (<ago>)] · $<sess>/<today>w<week> [· ctx <%>]
+#
+# Budget alerts:
+#   today > $20 → prefix "⚠"
+#   today > $50 → prefix "🚨"
+#
+# Performance budget: < 100ms p99.
 export PATH="$HOME/bin:$PATH"
 
 PROJ="${CLAUDE_PROJECT_DIR:-$(pwd)}"
 INPUT=$(cat 2>/dev/null || echo "{}")
-LOG="$PROJ/.claude/logs/live-activity.jsonl"
+LOG="$PROJ/.claude/logs/agents.jsonl"
 NOW=$(date +%s)
 
-# Model
+# ── Model ────────────────────────────────────────────────────────────────────
 MODEL="?"
 if command -v jq >/dev/null 2>&1; then
   MODEL=$(echo "$INPUT" | jq -r '.model.display_name // .model.id // "?"' 2>/dev/null)
   [ "$MODEL" = "null" ] || [ -z "$MODEL" ] && MODEL="?"
-  # Shorten model name
   MODEL=$(echo "$MODEL" | sed 's/claude-//;s/-2[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]//;s/sonnet/snnt/;s/opus/opus/;s/haiku/haiku/')
 fi
 
-# Last agent + elapsed time
+# ── Last post-agent ──────────────────────────────────────────────────────────
 LAST_AGENT=""
 if command -v jq >/dev/null 2>&1 && [ -f "$LOG" ]; then
   LAST_LINE=$(tail -20 "$LOG" 2>/dev/null | jq -r 'select(.event == "post" and .agent != null and .agent != "unknown" and .agent != "Bash") | "\(.epoch) \(.agent) \(.duration // 0)"' 2>/dev/null | tail -1)
@@ -36,7 +46,7 @@ if command -v jq >/dev/null 2>&1 && [ -f "$LOG" ]; then
   fi
 fi
 
-# Active agents (files with .agent_start_ prefix = agent currently running)
+# ── Active agents ────────────────────────────────────────────────────────────
 ACTIVE_COUNT=$(ls "$PROJ/.claude/logs/.agent_start_"* 2>/dev/null | wc -l | tr -d ' ')
 THINKING=""
 if [ "$ACTIVE_COUNT" -gt 0 ]; then
@@ -44,11 +54,51 @@ if [ "$ACTIVE_COUNT" -gt 0 ]; then
   THINKING=" ⚡${ACTIVE_NAMES}"
 fi
 
-# Cost today
+# ── Cost (session + today + week) ────────────────────────────────────────────
 COST=""
-if command -v ccusage >/dev/null 2>&1; then
-  TODAY=$(ccusage daily --json 2>/dev/null | jq -r '.totals.totalCost // empty' 2>/dev/null)
-  [ -n "$TODAY" ] && COST=" · \$${TODAY}"
+ALERT=""
+if command -v ccusage >/dev/null 2>&1 && command -v jq >/dev/null 2>&1; then
+  CCUSAGE_JSON=$(ccusage daily --json 2>/dev/null || echo "{}")
+  TODAY=$(echo "$CCUSAGE_JSON" | jq -r '.totals.totalCost // empty' 2>/dev/null)
+
+  # Sum costs for last 7 days from ccusage daily output
+  WEEK=$(echo "$CCUSAGE_JSON" | jq -r '
+    [.daily[]? | select(.date >= (now - 86400*7 | strftime("%Y-%m-%d")))] | map(.totalCost) | add // empty
+  ' 2>/dev/null)
+
+  # Approximate session $ — sum durations × per-second rate isn't precise,
+  # but we can use today as a proxy and let the operator see trends.
+  if [ -n "$TODAY" ]; then
+    if [ -n "$WEEK" ]; then
+      COST=" · \$${TODAY}d/\$${WEEK}w"
+    else
+      COST=" · \$${TODAY}d"
+    fi
+
+    # Budget alerts on today's spend
+    TODAY_INT=$(printf '%.0f' "$TODAY" 2>/dev/null || echo 0)
+    if [ "$TODAY_INT" -ge 50 ] 2>/dev/null; then
+      ALERT="🚨 "
+    elif [ "$TODAY_INT" -ge 20 ] 2>/dev/null; then
+      ALERT="⚠ "
+    fi
+  fi
 fi
 
-echo "🐺 La Bestia · ${MODEL}${THINKING}${LAST_AGENT}${COST}"
+# ── Context window % (from input.transcript_path or input.token_usage) ───────
+CTX_HINT=""
+if command -v jq >/dev/null 2>&1; then
+  # Claude Code may pass token usage in the input JSON — try common paths
+  CTX_USED=$(echo "$INPUT" | jq -r '.context.used // .tokens.used // .usage.input_tokens // empty' 2>/dev/null)
+  CTX_MAX=$(echo "$INPUT"  | jq -r '.context.max  // .tokens.max  // .usage.max_tokens   // 200000' 2>/dev/null)
+  if [ -n "$CTX_USED" ] && [ "$CTX_USED" != "null" ] && [ "$CTX_MAX" -gt 0 ] 2>/dev/null; then
+    PCT=$(( CTX_USED * 100 / CTX_MAX ))
+    if [ "$PCT" -ge 70 ]; then
+      CTX_HINT=" · ctx ${PCT}% (consider /compact)"
+    elif [ "$PCT" -ge 40 ]; then
+      CTX_HINT=" · ctx ${PCT}%"
+    fi
+  fi
+fi
+
+echo "${ALERT}🐺 La Bestia · ${MODEL}${THINKING}${LAST_AGENT}${COST}${CTX_HINT}"

@@ -1,0 +1,30 @@
+{
+  "name": "la-bestia",
+  "version": "3.0.0",
+  "description": "Deterministic, tested, MCP-ready Claude Code harness with 12 archetype-grounded agents (20+ years framing each), 12 commands incl. /flow Discover→Define→Develop→Deliver orchestration, 5 hooks, 4 skills, 4-layer memory. Single-LLM, single-operator, project-agnostic, zero external vault dependencies.",
+  "author": {
+    "name": "wmarcelino-catalift",
+    "url": "https://github.com/wmarcelino-catalift"
+  },
+  "license": "MIT",
+  "repository": "https://github.com/wmarcelino-catalift/la-bestia",
+  "homepage": "https://github.com/wmarcelino-catalift/la-bestia",
+  "keywords": [
+    "claude-code",
+    "claude-code-plugin",
+    "agents",
+    "cto",
+    "tdd",
+    "harness",
+    "single-llm",
+    "deterministic"
+  ],
+  "claudeCode": {
+    "minVersion": "2.0.0"
+  },
+  "agents": "config/agents/",
+  "skills": "config/skills/",
+  "commands": "config/commands/",
+  "hooks": "config/hooks/",
+  "settings": "config/settings.example.json"
+}

@@ -1,0 +1,44 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/wmarcelino-catalift/la-bestia/schemas/settings.schema.json",
+  "title": "La Bestia — settings.json",
+  "description": "Strict subset of Claude Code settings shape. Validates settings.example.json in CI.",
+  "type": "object",
+  "additionalProperties": true,
+  "properties": {
+    "env": {
+      "type": "object",
+      "additionalProperties": { "type": "string" }
+    },
+    "model": { "type": "string" },
+    "theme": { "type": "string", "enum": ["dark", "light", "auto"] },
+    "autoUpdatesChannel": { "type": "string", "enum": ["latest", "stable"] },
+    "effortLevel": {
+      "type": "string",
+      "enum": ["low", "medium", "high", "xhigh", "max"]
+    },
+    "permissions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["allow", "deny"],
+      "properties": {
+        "allow": { "type": "array", "items": { "type": "string" } },
+        "deny": { "type": "array", "items": { "type": "string" } },
+        "ask": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "hooks": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "statusLine": {
+      "type": "object",
+      "required": ["type", "command"],
+      "properties": {
+        "type": { "type": "string", "enum": ["command"] },
+        "command": { "type": "string" }
+      }
+    }
+  },
+  "required": ["permissions", "hooks"]
+}

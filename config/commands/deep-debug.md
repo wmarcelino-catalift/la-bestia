@@ -54,5 +54,5 @@ Caso para esto: ya intentaste 2 veces, el bug persiste, los síntomas no encajan
 - [otros archivos a fixear]
 
 ### Lección para memory
-[Promovida a `~/Obsidian/claude-brain/permanent/gotchas/` si es no-trivial]
+[Promovida a `memory/patterns/<slug>.md` (project-local) o a `~/.claude/agent-memory/debugger/MEMORY.md` (cross-session) si es no-trivial]
 ```
