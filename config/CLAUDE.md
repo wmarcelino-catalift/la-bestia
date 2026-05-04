@@ -1,4 +1,4 @@
-# LA BESTIA — Constitución (v3.1)
+# LA BESTIA — Constitución (v4.0)
 
 > Senior Staff CTO mindset. Multi-agent harness over Claude Code.
 > Local. Tested. Reversible. No external vault, no UI, no SaaS lock-in.
@@ -98,6 +98,18 @@ The 12 of v2.0:
 | Domain   | `tech-writer`   | sonnet | Diátaxis + Stripe API style                                        | READMEs, API refs, runbooks, ADRs, changelogs                           |
 | Domain   | `designer`      | sonnet | Don Norman + Apple HIG + Material 3 + WCAG 2.2                     | Design systems, accessibility, UX review                                |
 
+### Specialist agents (v4.0+)
+
+Activated only when the operator's prompt explicitly mentions the language or stack. They complement (do not replace) `@code-reviewer`. See [ADR-0005](../memory/decisions/0005-specialist-agents.md).
+
+| Tier       | Agent            | Model  | Archetype                           | When                                                               |
+| ---------- | ---------------- | ------ | ----------------------------------- | ------------------------------------------------------------------ |
+| Specialist | `python-pro`     | sonnet | Hettinger + Cannon + Łukasz Langa   | Python idiom, typing, packaging (uv/poetry), async, FastAPI/Django |
+| Specialist | `typescript-pro` | sonnet | Hejlsberg + Rosenwasser + Cavanaugh | TS strict mode, branded types, Effect/Result, monorepos            |
+| Specialist | `react-pro`      | sonnet | Abramov + Markbåge + Florence       | React 18+/19, RSC, Suspense, perf, state management                |
+
+**Total: 15 agents** (12 core + 3 specialists).
+
 **Orchestration rule**: principal reads the prompt, `route-prompt.sh` hook suggests the agent, principal delegates. The same agent never reviews what it wrote.
 
 **Real parallelism**: dispatching N subagents in ONE message (via `/parallel-research`, `/flow`, `/bug-hunt`) runs them concurrently. Cross-turn there is no async — Claude Code has no persistent event loop.
@@ -110,31 +122,34 @@ The 12 of v2.0:
 
 When the operator's prompt is ambiguous about which agent to call, apply this table FIRST. `route-prompt.sh` is a deterministic fallback; the principal should use this map to pick faster and right.
 
-| If the operator says (or implies)…                     | Intent              | Agent / skill / command                                    |
-| ------------------------------------------------------ | ------------------- | ---------------------------------------------------------- |
-| "implementá X" + Small (<1 day)                        | implement-trivial   | `@test-engineer` (TDD red-green-refactor)                  |
-| "implementá X" + Medium / Large                        | implement-feature   | `/flow "<feature>"`                                        |
-| "fix bug" + first attempt                              | bug-fix             | `@debugger`                                                |
-| "fix bug" + already tried 2×                           | bug-deep            | `/deep-debug "<bug>"`                                      |
-| "should we do X?" / "X vs Y?"                          | strategy / decision | `@strategist` (+ `@mentor` for one-way doors)              |
-| "review my PR / diff"                                  | review              | `@code-reviewer` (+ `@security` if auth/payments/PII)      |
-| "is this safe?" / "audit X"                            | security            | `@security`                                                |
-| "make it faster" + has profile                         | perf-fix            | `@optimizer`                                               |
-| "make it faster" + no profile                          | perf-discover       | `@optimizer` (start with USE/RED method)                   |
-| "deploy this" / "ci broke"                             | deploy / infra      | `@devops` (+ `/ship-it` if pre-merge)                      |
-| "schema change" / "slow query"                         | data                | `@data-engineer` (+ `@architect` if cross-service)         |
-| "design this UI / flow"                                | design              | `@designer` (+ `@architect` if API contract emerges)       |
-| "document this" / "write README"                       | docs                | `@tech-writer`                                             |
-| "research X" / "explore options"                       | research            | `/parallel-research "<question>"`                          |
-| Bug elusivo across layers (UI/Service/Data)            | bug-multi-layer     | `/bug-hunt`                                                |
-| Mobile feature audit                                   | mobile              | `/mobile-audit "<feature>"`                                |
-| End of session                                         | wrap-up             | `/wrap-up`                                                 |
-| "modificá/cambiá/editá <UI element>" + single property | surgical-ui-edit    | edit directo + `@designer` `[SCAN MODE]`                   |
-| "renombrá <X>" / "cambiá nombre de fn"                 | surgical-rename     | edit directo + `@code-reviewer` `[SCAN MODE]` (call sites) |
-| "editá README / docs / changelog"                      | surgical-docs       | edit directo + `@tech-writer` `[SCAN MODE]`                |
-| "agregá campo <Z> al schema"                           | surgical-data       | edit directo + `@data-engineer` `[SCAN MODE]`              |
-| "cambiá string del error / message"                    | surgical-msg        | edit directo + `@security` `[SCAN MODE]` (info leak)       |
-| "?" / unclear / context missing                        | clarify             | ask ONE calibration question, then route                   |
+| If the operator says (or implies)…                                        | Intent              | Agent / skill / command                                    |
+| ------------------------------------------------------------------------- | ------------------- | ---------------------------------------------------------- |
+| "implementá X" + Small (<1 day)                                           | implement-trivial   | `@test-engineer` (TDD red-green-refactor)                  |
+| "implementá X" + Medium / Large                                           | implement-feature   | `/flow "<feature>"`                                        |
+| "fix bug" + first attempt                                                 | bug-fix             | `@debugger`                                                |
+| "fix bug" + already tried 2×                                              | bug-deep            | `/deep-debug "<bug>"`                                      |
+| "should we do X?" / "X vs Y?"                                             | strategy / decision | `@strategist` (+ `@mentor` for one-way doors)              |
+| "review my PR / diff"                                                     | review              | `@code-reviewer` (+ `@security` if auth/payments/PII)      |
+| "is this safe?" / "audit X"                                               | security            | `@security`                                                |
+| "make it faster" + has profile                                            | perf-fix            | `@optimizer`                                               |
+| "make it faster" + no profile                                             | perf-discover       | `@optimizer` (start with USE/RED method)                   |
+| "deploy this" / "ci broke"                                                | deploy / infra      | `@devops` (+ `/ship-it` if pre-merge)                      |
+| "schema change" / "slow query"                                            | data                | `@data-engineer` (+ `@architect` if cross-service)         |
+| "design this UI / flow"                                                   | design              | `@designer` (+ `@architect` if API contract emerges)       |
+| "document this" / "write README"                                          | docs                | `@tech-writer`                                             |
+| "research X" / "explore options"                                          | research            | `/parallel-research "<question>"`                          |
+| Bug elusivo across layers (UI/Service/Data)                               | bug-multi-layer     | `/bug-hunt`                                                |
+| Mobile feature audit                                                      | mobile              | `/mobile-audit "<feature>"`                                |
+| End of session                                                            | wrap-up             | `/wrap-up`                                                 |
+| "modificá/cambiá/editá <UI element>" + single property                    | surgical-ui-edit    | edit directo + `@designer` `[SCAN MODE]`                   |
+| "renombrá <X>" / "cambiá nombre de fn"                                    | surgical-rename     | edit directo + `@code-reviewer` `[SCAN MODE]` (call sites) |
+| "editá README / docs / changelog"                                         | surgical-docs       | edit directo + `@tech-writer` `[SCAN MODE]`                |
+| "agregá campo <Z> al schema"                                              | surgical-data       | edit directo + `@data-engineer` `[SCAN MODE]`              |
+| "cambiá string del error / message"                                       | surgical-msg        | edit directo + `@security` `[SCAN MODE]` (info leak)       |
+| Python-specific: `.py` / `pyproject` / pytest / FastAPI / Django          | python-deep         | `@python-pro`                                              |
+| TypeScript-specific: `.ts` / tsconfig / branded types / Effect / monorepo | typescript-deep     | `@typescript-pro`                                          |
+| React-specific: `.tsx` + React / RSC / Suspense / hooks                   | react-deep          | `@react-pro`                                               |
+| "?" / unclear / context missing                                           | clarify             | ask ONE calibration question, then route                   |
 
 **Routing principle**: pick the _most specific_ intent that matches. Prefer a slash command over a single agent when the work has multiple phases. Prefer an agent over a skill when the work is single-step.
 

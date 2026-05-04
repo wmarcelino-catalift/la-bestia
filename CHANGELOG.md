@@ -6,6 +6,49 @@ This project adheres to [Semantic Versioning 2.0.0](https://semver.org/).
 
 ## [Unreleased]
 
+## [4.0.0] — 2026-05-04
+
+Major release combining v3.2 + v3.3 + v4.0 in a single ship. Adds 3 specialist agents, GitHub workflow commands, plus 3 new hooks for cwd / notify / architecture-gate, plus 2 new operator utilities (session-analyze, agent-memory-compact). See [ADR-0005](./memory/decisions/0005-specialist-agents.md).
+
+### Added (Tier 1 — observability + ergonomics)
+
+- **`AGENTS.md`** at repo root — Claude Code convention quick-reference, complementing `config/CLAUDE.md`. Cheat-sheet table of "you say X → agent Y wakes up".
+- **`config/hooks/cwd-changed.sh`** — detects `cd` to a new project. If the target lacks `memory/hot-context.md` but has a manifest (package.json, Cargo.toml, etc.), suggests `/onboard-project`. 6 bats tests.
+- **`config/hooks/notify.sh`** — terminal bell + optional desktop notification (`NOTIFY_DESKTOP=1`) when an agent runs >2min (`NOTIFY_THRESHOLD_SECONDS`). macOS / Linux / Windows support.
+- **`bin/session-analyze.sh`** — comprehensive post-mortem: agents.jsonl ranking, bash command frequencies, git activity, ROI signal, ccusage cost. Markdown output ready to paste into PR description or wrap-up note.
+- **`bin/agent-memory-compact.sh`** — flags `MEMORY.md` files exceeding `COMPACT_THRESHOLD_KB` (default 8). Produces report; never auto-rewrites operator data.
+
+### Added (Tier 2 — workflow integration)
+
+- **`config/commands/issue.md`** — `/issue list|create|triage` wraps `gh` CLI. Triage subcommand dispatches `@strategist` for RICE scoring + label proposal.
+- **`config/commands/pr-create.md`** — auto-generates Conventional Commits PR title + structured body (summary / test plan / out-of-scope / related) from git log. Runs `/ship-it` quality gates before opening. Halts on failure.
+- **`config/hooks/architecture-gate.sh`** — pre-commit advisory hook. Detects structural changes (4+ directories, new top-level dirs, schema/migration files, public API surface). Suggests ADR creation. Set `ARCHITECTURE_GATE_HARD=1` to block instead of warn. 7 bats tests.
+- **`config/commands/plan-flow.md`** — `/plan-flow` runs only Phases 1-2 of `/flow`, produces `plans/<NNNN>-<slug>.md` artifact for human review before Develop. ~50% of `/flow` cost.
+
+### Added (Tier 3 — language specialists, ADR-0005)
+
+- **`config/agents/python-pro.md`** — Hettinger + Cannon + Łukasz Langa archetype. Python 3.12+ idiom, uv/poetry packaging, asyncio, FastAPI/Django, Polars, pytest+hypothesis.
+- **`config/agents/typescript-pro.md`** — Hejlsberg + Rosenwasser + Cavanaugh archetype. TS strict mode, branded types, Zod/Effect runtime validation, monorepo (pnpm + Turborepo), tsup/Bun.
+- **`config/agents/react-pro.md`** — Abramov + Markbåge + Florence archetype. React 18+/19, RSC, Suspense, TanStack Query, perf via profiler (no premature memo).
+- **`memory/decisions/0005-specialist-agents.md`** — full ADR explaining the 12-core + 3-specialist split.
+
+### Changed
+
+- **`config/CLAUDE.md` → v4.0**: header bumped, specialist table added under §6, Intent Map §6.1 gets 3 new specialist routing rows.
+- **`config/settings.example.json`**: registers cwd-changed.sh + notify.sh + architecture-gate.sh hooks.
+- **`config/scripts/verify.sh`**: counts updated to 15 agents, 8 hooks, 5 bin utilities.
+- **`README.md` + `.claude-plugin/plugin.json`**: bumped to 4.0.0.
+
+### Migration from v3.1
+
+No breaking change for existing usage. Action recommended:
+
+1. `cd ~/code/la-bestia && git pull && bash install.sh global`
+2. `bash ~/.claude/scripts/verify.sh` — should report all pass with new counts.
+3. To use specialist agents: just write Python/TS/React-specific prompts. They auto-route via Intent Map.
+4. To enable desktop notifications: `export NOTIFY_DESKTOP=1` in your shell rc.
+5. To make architecture-gate blocking: `export ARCHITECTURE_GATE_HARD=1` (default is advisory).
+
 ## [3.1.0] — 2026-05-04
 
 Efficiency + analysis pack. No breaking changes. ~25-35% additional token savings per `/flow` vs v3.0. All Tier-1 quick wins from the v3.1 roadmap shipped.
@@ -297,7 +340,8 @@ Major consolidation. **18 agents → 12 archetype-grounded agents.** New `/flow`
 - 3 skills: `cto-thinking-system`, `ship-it`, `token-saver`.
 - Constitution `CLAUDE.md` with the 5 questions + 10 principles.
 
-[Unreleased]: https://github.com/wmarcelino-catalift/la-bestia/compare/v3.1.0...HEAD
+[Unreleased]: https://github.com/wmarcelino-catalift/la-bestia/compare/v4.0.0...HEAD
+[4.0.0]: https://github.com/wmarcelino-catalift/la-bestia/compare/v3.1.0...v4.0.0
 [3.1.0]: https://github.com/wmarcelino-catalift/la-bestia/compare/v3.0.1...v3.1.0
 [3.0.1]: https://github.com/wmarcelino-catalift/la-bestia/compare/v3.0.0...v3.0.1
 [3.0.0]: https://github.com/wmarcelino-catalift/la-bestia/compare/v2.1.0...v3.0.0

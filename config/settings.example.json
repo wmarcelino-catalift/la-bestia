@@ -158,6 +158,21 @@
             "command": "bash \"$HOME/.claude/hooks/log-agents.sh\" pre"
           }
         ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$HOME/.claude/hooks/cwd-changed.sh\"",
+            "async": true
+          },
+          {
+            "type": "command",
+            "command": "bash \"$HOME/.claude/hooks/architecture-gate.sh\"",
+            "async": true
+          }
+        ]
       }
     ],
     "PostToolUse": [
@@ -176,6 +191,16 @@
           {
             "type": "command",
             "command": "bash \"$HOME/.claude/hooks/log-agents.sh\" post"
+          }
+        ]
+      },
+      {
+        "matcher": "Task",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$HOME/.claude/hooks/notify.sh\"",
+            "async": true
           }
         ]
       }
