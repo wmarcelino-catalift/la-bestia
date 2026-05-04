@@ -6,13 +6,54 @@ This project adheres to [Semantic Versioning 2.0.0](https://semver.org/).
 
 ## [Unreleased]
 
+## [3.1.0] — 2026-05-04
+
+Efficiency + analysis pack. No breaking changes. ~25-35% additional token savings per `/flow` vs v3.0. All Tier-1 quick wins from the v3.1 roadmap shipped.
+
+### Added
+
+- **`bin/flow-estimate.sh`** — pre-`/flow` cost estimator. Classifies prompt size + touches heuristically, emits per-phase token + $ estimate, computes savings vs Claude solo. Operator runs **before** committing to a `/flow` to avoid surprise costs. 12 bats tests.
+- **`tests/scripts/flow-estimate.bats`** — 12 cases: size classification (Small/Medium/Large), touch detection (Auth, Data, CLI, DevOps, Docs), phase breakdown, savings line, stdin support.
+- **`tests/scripts/compress.bats`** — 9 cases for `bin/compress.sh` (was missing in v3.0.1; added to keep parity).
+- **Intent Map rows** for surgical edits in `config/CLAUDE.md` §6.1 — 5 new mappings: `surgical-ui-edit`, `surgical-rename`, `surgical-docs`, `surgical-data`, `surgical-msg`. Each routes to direct edit + agent in `[SCAN MODE]`.
+- **SCAN MODE protocol** in `config/CLAUDE.md` §6.1 — universal contract: when an agent receives `[SCAN MODE]` in its prompt, it returns ≤ 200 tokens, severity-tagged or `✓ scan clean`, no alternatives proposed, no code written. Cost: $0.02–0.10 per scan vs $0.10–0.50 in normal mode.
+
+### Changed
+
+- **`config/skills/flow-feature/SKILL.md` → v1.2.0**:
+  - Added **Synthesis style** section: phase synthesis MUST be ≤ 800 words, table-first, no prose recap of agent reasoning.
+  - Added **Phase cost reporting** section: each synthesis emits `Phase cost: $X.XX · N agents · ~Y tokens · Zs elapsed` line.
+  - Added **Phase 2 deduplication** section: convergent decisions from Phase 1 are `LOCKED`; Phase 2 agents do NOT re-debate them.
+- **`config/commands/wrap-up.md`** — added auto-ADR detection step. Principal scans session for one-way-door language ("locked", "irreversible", "stack: X", "schema change") and proposes ADR drafts using `memory/templates/adr.md`. Operator approves before write.
+- **`config/CLAUDE.md`** — bumped header to v3.1.
+
+### Migration from v3.0.1
+
+No action required. All changes are additive.
+
+To use the new estimator before `/flow`:
+
+```bash
+bash ~/.claude/bin/flow-estimate.sh "<your prompt>"
+# → see size, touches, per-phase cost, and savings vs Claude solo
+# → if cost looks ok, run /flow in your session; otherwise refine prompt
+```
+
+To use SCAN MODE: write surgical edit prompts naturally — Intent Map auto-routes:
+
+```
+> modificá el botón a color negro
+# → principal edits + dispatches @designer [SCAN MODE]
+# → 30s, $0.05–0.10, severity-tagged finding
+```
+
 ## [3.0.1] — 2026-05-04
 
 Patch release closing critical gaps in v3.0. No breaking changes.
 
 ### Fixed
 
-- **`install.sh`** — was not copying `bin/*.sh` (compress, flow-viewer, onboard) to `~/.claude/bin/`. Operators following the install workflow ended up missing these utilities. **Patched**: install.sh now creates `~/.claude/bin/` and copies all bin/*.sh during `install.sh global` and `install.sh project`.
+- **`install.sh`** — was not copying `bin/*.sh` (compress, flow-viewer, onboard) to `~/.claude/bin/`. Operators following the install workflow ended up missing these utilities. **Patched**: install.sh now creates `~/.claude/bin/` and copies all bin/\*.sh during `install.sh global` and `install.sh project`.
 - **`config/scripts/verify.sh`** — added `bin/ (>= 3)` check so verify reports missing bin utilities instead of silent gap.
 
 ### Added
@@ -256,7 +297,8 @@ Major consolidation. **18 agents → 12 archetype-grounded agents.** New `/flow`
 - 3 skills: `cto-thinking-system`, `ship-it`, `token-saver`.
 - Constitution `CLAUDE.md` with the 5 questions + 10 principles.
 
-[Unreleased]: https://github.com/wmarcelino-catalift/la-bestia/compare/v3.0.1...HEAD
+[Unreleased]: https://github.com/wmarcelino-catalift/la-bestia/compare/v3.1.0...HEAD
+[3.1.0]: https://github.com/wmarcelino-catalift/la-bestia/compare/v3.0.1...v3.1.0
 [3.0.1]: https://github.com/wmarcelino-catalift/la-bestia/compare/v3.0.0...v3.0.1
 [3.0.0]: https://github.com/wmarcelino-catalift/la-bestia/compare/v2.1.0...v3.0.0
 [2.1.0]: https://github.com/wmarcelino-catalift/la-bestia/compare/v2.0.0...v2.1.0

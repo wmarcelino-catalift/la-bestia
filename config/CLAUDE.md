@@ -1,4 +1,4 @@
-# LA BESTIA — Constitución (v3.0)
+# LA BESTIA — Constitución (v3.1)
 
 > Senior Staff CTO mindset. Multi-agent harness over Claude Code.
 > Local. Tested. Reversible. No external vault, no UI, no SaaS lock-in.
@@ -110,30 +110,61 @@ The 12 of v2.0:
 
 When the operator's prompt is ambiguous about which agent to call, apply this table FIRST. `route-prompt.sh` is a deterministic fallback; the principal should use this map to pick faster and right.
 
-| If the operator says (or implies)…          | Intent              | Agent / skill / command                               |
-| ------------------------------------------- | ------------------- | ----------------------------------------------------- |
-| "implementá X" + Small (<1 day)             | implement-trivial   | `@test-engineer` (TDD red-green-refactor)             |
-| "implementá X" + Medium / Large             | implement-feature   | `/flow "<feature>"`                                   |
-| "fix bug" + first attempt                   | bug-fix             | `@debugger`                                           |
-| "fix bug" + already tried 2×                | bug-deep            | `/deep-debug "<bug>"`                                 |
-| "should we do X?" / "X vs Y?"               | strategy / decision | `@strategist` (+ `@mentor` for one-way doors)         |
-| "review my PR / diff"                       | review              | `@code-reviewer` (+ `@security` if auth/payments/PII) |
-| "is this safe?" / "audit X"                 | security            | `@security`                                           |
-| "make it faster" + has profile              | perf-fix            | `@optimizer`                                          |
-| "make it faster" + no profile               | perf-discover       | `@optimizer` (start with USE/RED method)              |
-| "deploy this" / "ci broke"                  | deploy / infra      | `@devops` (+ `/ship-it` if pre-merge)                 |
-| "schema change" / "slow query"              | data                | `@data-engineer` (+ `@architect` if cross-service)    |
-| "design this UI / flow"                     | design              | `@designer` (+ `@architect` if API contract emerges)  |
-| "document this" / "write README"            | docs                | `@tech-writer`                                        |
-| "research X" / "explore options"            | research            | `/parallel-research "<question>"`                     |
-| Bug elusivo across layers (UI/Service/Data) | bug-multi-layer     | `/bug-hunt`                                           |
-| Mobile feature audit                        | mobile              | `/mobile-audit "<feature>"`                           |
-| End of session                              | wrap-up             | `/wrap-up`                                            |
-| "?" / unclear / context missing             | clarify             | ask ONE calibration question, then route              |
+| If the operator says (or implies)…                     | Intent              | Agent / skill / command                                    |
+| ------------------------------------------------------ | ------------------- | ---------------------------------------------------------- |
+| "implementá X" + Small (<1 day)                        | implement-trivial   | `@test-engineer` (TDD red-green-refactor)                  |
+| "implementá X" + Medium / Large                        | implement-feature   | `/flow "<feature>"`                                        |
+| "fix bug" + first attempt                              | bug-fix             | `@debugger`                                                |
+| "fix bug" + already tried 2×                           | bug-deep            | `/deep-debug "<bug>"`                                      |
+| "should we do X?" / "X vs Y?"                          | strategy / decision | `@strategist` (+ `@mentor` for one-way doors)              |
+| "review my PR / diff"                                  | review              | `@code-reviewer` (+ `@security` if auth/payments/PII)      |
+| "is this safe?" / "audit X"                            | security            | `@security`                                                |
+| "make it faster" + has profile                         | perf-fix            | `@optimizer`                                               |
+| "make it faster" + no profile                          | perf-discover       | `@optimizer` (start with USE/RED method)                   |
+| "deploy this" / "ci broke"                             | deploy / infra      | `@devops` (+ `/ship-it` if pre-merge)                      |
+| "schema change" / "slow query"                         | data                | `@data-engineer` (+ `@architect` if cross-service)         |
+| "design this UI / flow"                                | design              | `@designer` (+ `@architect` if API contract emerges)       |
+| "document this" / "write README"                       | docs                | `@tech-writer`                                             |
+| "research X" / "explore options"                       | research            | `/parallel-research "<question>"`                          |
+| Bug elusivo across layers (UI/Service/Data)            | bug-multi-layer     | `/bug-hunt`                                                |
+| Mobile feature audit                                   | mobile              | `/mobile-audit "<feature>"`                                |
+| End of session                                         | wrap-up             | `/wrap-up`                                                 |
+| "modificá/cambiá/editá <UI element>" + single property | surgical-ui-edit    | edit directo + `@designer` `[SCAN MODE]`                   |
+| "renombrá <X>" / "cambiá nombre de fn"                 | surgical-rename     | edit directo + `@code-reviewer` `[SCAN MODE]` (call sites) |
+| "editá README / docs / changelog"                      | surgical-docs       | edit directo + `@tech-writer` `[SCAN MODE]`                |
+| "agregá campo <Z> al schema"                           | surgical-data       | edit directo + `@data-engineer` `[SCAN MODE]`              |
+| "cambiá string del error / message"                    | surgical-msg        | edit directo + `@security` `[SCAN MODE]` (info leak)       |
+| "?" / unclear / context missing                        | clarify             | ask ONE calibration question, then route                   |
 
 **Routing principle**: pick the _most specific_ intent that matches. Prefer a slash command over a single agent when the work has multiple phases. Prefer an agent over a skill when the work is single-step.
 
 **Anti-pattern**: do not delegate to an agent without first checking this map. `route-prompt.sh` is a hint, this map is the spec.
+
+### SCAN MODE — fast post-edit checks (v3.1)
+
+For surgical edits (single-property UI tweak, rename, doc edit, schema field add), the principal does the edit directly first, then dispatches an agent in `[SCAN MODE]`. The agent contract changes:
+
+| Behavior             | Normal mode                  | SCAN MODE                                      |
+| -------------------- | ---------------------------- | ---------------------------------------------- |
+| Output budget        | unlimited                    | ≤ 200 tokens                                   |
+| Output shape         | full ADR / review / proposal | 1 paragraph severity-tagged OR `✓ scan clean`  |
+| Propose alternatives | yes                          | NO                                             |
+| Write code           | yes                          | NO                                             |
+| Read files           | as needed                    | only the diff produced by the principal's edit |
+| Cost (typical)       | $0.10–0.50                   | $0.02–0.10                                     |
+
+**How to invoke**: principal's prompt to the agent starts with `[SCAN MODE]` literal. Example:
+
+```
+[SCAN MODE] Reviewer: I just edited Button.tsx line 42 to set color: #000.
+Diff:
+- background: #1a1a1a
++ color: #000
+
+Scan only this diff. Flag WCAG / token / state issues if any.
+```
+
+The agent recognizes `[SCAN MODE]` and clamps its output. This is a soft contract enforced by the agent's prompt, not a runtime gate.
 
 ---
 

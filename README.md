@@ -1,4 +1,4 @@
-# La Bestia — Claude Code harness · v3.0.1
+# La Bestia — Claude Code harness · v3.1
 
 > A deterministic, tested, MCP-ready harness for Claude Code.
 > **12 archetype-grounded agents** (20+ years framing each) · 12 commands incl. `/flow` orchestration · 5 hooks · 4 skills · 4-layer memory · project-agnostic · zero external vault dependencies.
@@ -132,18 +132,19 @@ GitHub · Postgres · Linear · Sentry · Slack · Filesystem — wire what you 
 
 ## Versions
 
-| Version   | Headline                                                                                                                                                                                                                             | Date           |
-| --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------- |
-| **3.0.1** | **Patch: install.sh now copies `bin/` (was missing). Added `tests/scripts/compress.bats`. New `docs/QUICKSTART.md`. Updated `docs/HOW-IT-WORKS.md` to v3.0 features. verify.sh checks `bin/`.** | **2026-05-04** |
-| 3.0.0 | Smart routing (Intent Map in CLAUDE.md), rich SessionStart context (15-stack auto-detect + git richness + cost + last-24h agents), `/onboard-project` bootstrap wizard, statusline budget alerts. ~20-30% token savings vs v2.1. | 2026-05-04 |
-| 2.1.0     | `bin/flow-viewer.sh` ASCII gantt of sessions, mandatory phase banners in `/flow`, `/status` rewritten (was broken since v1.0), CI runs `tests/scripts/`. No UI surfaces — text only.                                                 | 2026-05-04     |
-| 2.0.0     | 18 → 12 archetype-grounded agents (Vogels, Linus, Gregg, Schneier, Beck, Norman…). New `/flow` Discover→Define→Develop→Deliver pipeline. Project-agnostic.                                                                           | 2026-05-03     |
-| 1.1.0     | Hook consolidation (track-agent → log-agents), Makefile, plugin manifest, `bin/compress.sh`, +CI gates.                                                                                                                              | 2026-05-03     |
-| 1.0.0     | Foundation: tests, CI, schemas, evals, MCP-first. Removed Obsidian, dashboard, flow-diagram, graphify.                                                                                                                               | 2026-05-03     |
-| 0.4.0     | +6 agents, +1 skill (graphify), levantamiento doc                                                                                                                                                                                    | 2026-05-03     |
-| 0.3.0     | Inter-agent memory templates, bilingual routing                                                                                                                                                                                      | 2026-05-03     |
-| 0.2.0     | 11 slash commands, ES/EN routing                                                                                                                                                                                                     | 2026-05-03     |
-| 0.1.0     | 6 agents, 5 hooks, 3 skills                                                                                                                                                                                                          | 2026-05-01     |
+| Version   | Headline                                                                                                                                                                                                                         | Date           |
+| --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------- |
+| **3.1.0** | **Efficiency + analysis pack: `bin/flow-estimate.sh` cost estimator pre-/flow, synthesis compression (≤800 words), Phase 2 deduplication, per-phase cost reporting, auto-ADR detection in /wrap-up, SCAN MODE for surgical edits + 5 new Intent Map rows.** | **2026-05-04** |
+| 3.0.1 | Patch: install.sh now copies `bin/` (was missing). Added `tests/scripts/compress.bats`. New `docs/QUICKSTART.md`. Updated `docs/HOW-IT-WORKS.md` to v3.0 features. verify.sh checks `bin/`. | 2026-05-04 |
+| 3.0.0     | Smart routing (Intent Map in CLAUDE.md), rich SessionStart context (15-stack auto-detect + git richness + cost + last-24h agents), `/onboard-project` bootstrap wizard, statusline budget alerts. ~20-30% token savings vs v2.1. | 2026-05-04     |
+| 2.1.0     | `bin/flow-viewer.sh` ASCII gantt of sessions, mandatory phase banners in `/flow`, `/status` rewritten (was broken since v1.0), CI runs `tests/scripts/`. No UI surfaces — text only.                                             | 2026-05-04     |
+| 2.0.0     | 18 → 12 archetype-grounded agents (Vogels, Linus, Gregg, Schneier, Beck, Norman…). New `/flow` Discover→Define→Develop→Deliver pipeline. Project-agnostic.                                                                       | 2026-05-03     |
+| 1.1.0     | Hook consolidation (track-agent → log-agents), Makefile, plugin manifest, `bin/compress.sh`, +CI gates.                                                                                                                          | 2026-05-03     |
+| 1.0.0     | Foundation: tests, CI, schemas, evals, MCP-first. Removed Obsidian, dashboard, flow-diagram, graphify.                                                                                                                           | 2026-05-03     |
+| 0.4.0     | +6 agents, +1 skill (graphify), levantamiento doc                                                                                                                                                                                | 2026-05-03     |
+| 0.3.0     | Inter-agent memory templates, bilingual routing                                                                                                                                                                                  | 2026-05-03     |
+| 0.2.0     | 11 slash commands, ES/EN routing                                                                                                                                                                                                 | 2026-05-03     |
+| 0.1.0     | 6 agents, 5 hooks, 3 skills                                                                                                                                                                                                      | 2026-05-01     |
 
 Migration from v0.x: see [`CHANGELOG.md`](./CHANGELOG.md) → `[1.0.0]` → Migration.
 

@@ -1,7 +1,7 @@
 ---
 name: flow-feature
-version: 1.1.0
-description: "Orchestrate a non-trivial feature end-to-end: Discover → Define → Develop → Deliver. Parallel fan-out within phases, Plan-Apply ritual between phases. Auto-trigger on 'flow', 'pipeline', 'full feature', 'double diamond', 'build feature'."
+version: 1.2.0
+description: "Orchestrate a non-trivial feature end-to-end: Discover → Define → Develop → Deliver. Parallel fan-out within phases, Plan-Apply ritual between phases. Synthesis compression + Phase 2 deduplication + per-phase cost reporting. Auto-trigger on 'flow', 'pipeline', 'full feature', 'double diamond', 'build feature'."
 triggers:
   [
     flow,
@@ -34,6 +34,48 @@ Take a non-trivial feature request and run it through a disciplined four-phase p
 - Pure debugging — use `/deep-debug` or `@debugger` directly.
 - Pure research with no implementation — use `/parallel-research`.
 - Shipping already-implemented code — use `/ship-it`.
+
+---
+
+## Synthesis style (mandatory in v1.2)
+
+Every Phase synthesis output MUST be:
+
+- **≤ 800 words total**. Compression is the value — operator skims, not reads.
+- **Table-first**: ≤ 2 tables max (one for decisions, optional one for risks).
+- **Convergent / divergent in 3 bullets each**, max.
+- **No prose recap of agent reasoning** — operator can replay agent output if curious (`@<agent> "show me your reasoning on X"`).
+- **One trailing section** named `Operator decision needed` listing only the ACTIONABLE choices (not the analysis).
+
+Anti-pattern: dumping each agent's full output verbatim with section headers per agent. That's a tax on operator attention.
+
+---
+
+## Phase cost reporting (mandatory in v1.2)
+
+After each phase synthesis, the principal MUST emit a single line:
+
+```
+Phase cost: $X.XX · N agents · ~Y tokens · Zs elapsed
+Cumulative /flow cost: $X.XX of estimated $Y.YY budget
+```
+
+Numbers come from `agents.jsonl` (per-agent duration + tokens) plus operator's `ccusage daily` if available. If the cumulative is approaching estimate × 1.3, principal flags `⚠ over-budget — consider /compact or skip Phase X`.
+
+This is text in the synthesis, not a UI surface.
+
+---
+
+## Phase 2 deduplication (v1.2)
+
+When entering Phase 2 (Define), the principal MUST:
+
+1. Re-read the Phase 1 synthesis from session context.
+2. Mark the **convergent decisions** as `LOCKED` — agents in Phase 2 do NOT re-debate them.
+3. If a Phase 2 agent suggests overriding a `LOCKED` decision, the principal treats it as a 🔴 finding requiring explicit operator confirmation, **not** a casual revisit.
+4. The Phase 2 dispatch prompt explicitly tells each agent: "The following decisions are locked from Phase 1: [list]. Do not re-evaluate. Build on top."
+
+This stops the common waste of re-debating stack/storage/timestamps in Phase 2 when Phase 1 already chose.
 
 ---
 
@@ -276,7 +318,8 @@ Cost is logged via the standard `agents.jsonl` audit log; statusline shows `$` p
 
 ## Versioning
 
-| Version | Date       | Change                                                                                |
-| ------- | ---------- | ------------------------------------------------------------------------------------- |
-| 1.1.0   | 2026-05-04 | Mandatory phase banners (stdout text, no UI) for operator orientation.                |
-| 1.0.0   | 2026-05-03 | Initial release with v2.0 agent set (12 agents) and Plan-Apply ritual between phases. |
+| Version | Date       | Change                                                                                                   |
+| ------- | ---------- | -------------------------------------------------------------------------------------------------------- |
+| 1.2.0   | 2026-05-04 | Synthesis compression (≤800 words), per-phase cost reporting, Phase 2 deduplication of locked decisions. |
+| 1.1.0   | 2026-05-04 | Mandatory phase banners (stdout text, no UI) for operator orientation.                                   |
+| 1.0.0   | 2026-05-03 | Initial release with v2.0 agent set (12 agents) and Plan-Apply ritual between phases.                    |

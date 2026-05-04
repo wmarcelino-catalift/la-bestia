@@ -1,6 +1,6 @@
 {
   "name": "la-bestia",
-  "version": "3.0.1",
+  "version": "3.1.0",
   "description": "Deterministic, tested, MCP-ready Claude Code harness with 12 archetype-grounded agents (20+ years framing each), 12 commands incl. /flow Discover→Define→Develop→Deliver orchestration, 5 hooks, 4 skills, 4-layer memory. Single-LLM, single-operator, project-agnostic, zero external vault dependencies.",
   "author": {
     "name": "wmarcelino-catalift",
