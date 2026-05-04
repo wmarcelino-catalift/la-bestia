@@ -1,6 +1,6 @@
 {
   "name": "la-bestia",
-  "version": "4.0.0",
+  "version": "4.1.0",
   "description": "Deterministic, tested, MCP-ready Claude Code harness. 15 archetype-grounded agents (12 core + 3 language specialists: python-pro, typescript-pro, react-pro). 14 commands incl. /flow Discover→Define→Develop→Deliver orchestration + /issue + /pr-create + /plan-flow. 8 hooks (block-secrets, inject-context, route-prompt, log-agents, log-session, cwd-changed, notify, architecture-gate). 4 skills. 5 bin utilities (compress, flow-viewer, onboard, flow-estimate, session-analyze, agent-memory-compact). 4-layer memory. Single-LLM, single-operator, project-agnostic, zero external vault dependencies.",
   "author": {
     "name": "wmarcelino-catalift",

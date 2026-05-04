@@ -42,6 +42,25 @@ verify: ## Run ~/.claude/scripts/verify.sh against current install
 
 check: lint test verify ## Full pre-commit check (lint + test + verify)
 
+test-quality: ## Run quality measurement: routing tests + parallelism + latency
+	@echo "=== route-prompt 16 canonical cases ==="
+	@command -v bats >/dev/null 2>&1 || { echo "✗ bats not installed" >&2; exit 1; }
+	@bats --tap tests/hooks/route-prompt.bats
+	@echo ""
+	@echo "=== parallelism check (against your live agents.jsonl) ==="
+	@if [ -f "$$HOME/.claude/logs/agents.jsonl" ]; then \
+		bash bin/parallelism-check.sh "$$HOME/.claude/logs/agents.jsonl" || true ; \
+	else \
+		echo "(no live agents.jsonl yet — run /flow first to populate)" ; \
+	fi
+	@echo ""
+	@echo "=== latency report (against your live agents.jsonl) ==="
+	@if [ -f "$$HOME/.claude/logs/agents.jsonl" ]; then \
+		bash bin/latency-report.sh "$$HOME/.claude/logs/agents.jsonl" || true ; \
+	else \
+		echo "(no live agents.jsonl yet)" ; \
+	fi
+
 clean: ## Remove generated artifacts (logs, eval reports)
 	rm -rf evals/_reports/ tests/_tmp/ .claude/logs/*.jsonl .claude/logs/.agent_start_*
 

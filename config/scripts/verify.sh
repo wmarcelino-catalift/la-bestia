@@ -45,7 +45,7 @@ check "skills/ (>= 4)"          "[ \$(ls -d \"$CDIR/skills\"/*/ 2>/dev/null | wc
 check "commands/ (>= 14)"       "[ \$(ls \"$CDIR/commands\"/*.md 2>/dev/null | wc -l) -ge 14 ]"
 check "hooks/ (>= 8)"           "[ \$(ls \"$CDIR/hooks\"/*.sh 2>/dev/null | wc -l) -ge 8 ]"
 check "scripts/ (>= 3)"         "[ \$(ls \"$CDIR/scripts\"/*.sh 2>/dev/null | wc -l) -ge 3 ]"
-check "bin/ (>= 5)"             "[ \$(ls \"$CDIR/bin\"/*.sh 2>/dev/null | wc -l) -ge 5 ]"
+check "bin/ (>= 6)"             "[ \$(ls \"$CDIR/bin\"/*.sh 2>/dev/null | wc -l) -ge 6 ]"
 check "settings.json"           "[ -f \"$CDIR/settings.json\" ]"
 check "logs/ dir"               "[ -d \"$CDIR/logs\" ] || mkdir -p \"$CDIR/logs\""
 

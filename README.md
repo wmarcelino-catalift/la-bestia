@@ -1,4 +1,4 @@
-# La Bestia — Claude Code harness · v4.0
+# La Bestia — Claude Code harness · v4.1
 
 > A deterministic, tested, MCP-ready harness for Claude Code.
 > **12 archetype-grounded agents** (20+ years framing each) · 12 commands incl. `/flow` orchestration · 5 hooks · 4 skills · 4-layer memory · project-agnostic · zero external vault dependencies.
@@ -11,17 +11,17 @@
 
 ## What you get
 
-| Surface                      | Count | Notes                                                                                                      |
-| ---------------------------- | ----- | ---------------------------------------------------------------------------------------------------------- |
+| Surface                      | Count | Notes                                                                                                                              |
+| ---------------------------- | ----- | ---------------------------------------------------------------------------------------------------------------------------------- |
 | Agents                       | 15    | 12 core (Vogels, Linus, Gregg, Schneier, Beck, Norman…) + 3 specialists (python-pro, typescript-pro, react-pro). Schema-validated. |
-| Skills                       | 4     | `cto-thinking-system`, `flow-feature` (orchestration), `ship-it`, `token-saver`                            |
-| Slash commands               | 14    | Includes `/flow`, `/plan-flow`, `/onboard-project`, `/issue`, `/pr-create`                                 |
-| Hooks                        | 8     | block-secrets, inject-context, route-prompt, log-agents, log-session, cwd-changed, notify, architecture-gate |
-| Memory layers                | 4     | `<repo>/memory/{hot-context,decisions,patterns}` + `~/.claude/agent-memory/<agent>/`                       |
-| MCP servers wired by default | **0** | Operator opts in — see [`mcp/README.md`](./mcp/README.md)                                                  |
-| External vault dependencies  | **0** | No Obsidian, no Notion, no anything                                                                        |
-| Project-specific assumptions | **0** | Genuinely project-agnostic. Drop into any codebase.                                                        |
-| UI surfaces                  | **0** | Terminal text only                                                                                         |
+| Skills                       | 4     | `cto-thinking-system`, `flow-feature` (orchestration), `ship-it`, `token-saver`                                                    |
+| Slash commands               | 14    | Includes `/flow`, `/plan-flow`, `/onboard-project`, `/issue`, `/pr-create`                                                         |
+| Hooks                        | 8     | block-secrets, inject-context, route-prompt, log-agents, log-session, cwd-changed, notify, architecture-gate                       |
+| Memory layers                | 4     | `<repo>/memory/{hot-context,decisions,patterns}` + `~/.claude/agent-memory/<agent>/`                                               |
+| MCP servers wired by default | **0** | Operator opts in — see [`mcp/README.md`](./mcp/README.md)                                                                          |
+| External vault dependencies  | **0** | No Obsidian, no Notion, no anything                                                                                                |
+| Project-specific assumptions | **0** | Genuinely project-agnostic. Drop into any codebase.                                                                                |
+| UI surfaces                  | **0** | Terminal text only                                                                                                                 |
 
 ---
 
@@ -132,20 +132,21 @@ GitHub · Postgres · Linear · Sentry · Slack · Filesystem — wire what you 
 
 ## Versions
 
-| Version   | Headline                                                                                                                                                                                                                                                    | Date           |
-| --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------- |
-| **4.0.0** | **Combined v3.2+v3.3+v4.0: 3 specialist agents (python-pro, typescript-pro, react-pro), 3 new hooks (cwd-changed, notify, architecture-gate), 2 new bin utilities (session-analyze, agent-memory-compact), 3 new commands (/issue, /pr-create, /plan-flow), AGENTS.md root file. ADR-0005.** | **2026-05-04** |
-| 3.1.0 | Efficiency + analysis pack: `bin/flow-estimate.sh`, synthesis compression, Phase 2 deduplication, per-phase cost, auto-ADR detection, SCAN MODE for surgical edits. | 2026-05-04 |
-| 3.0.1     | Patch: install.sh now copies `bin/` (was missing). Added `tests/scripts/compress.bats`. New `docs/QUICKSTART.md`. Updated `docs/HOW-IT-WORKS.md` to v3.0 features. verify.sh checks `bin/`.                                                                 | 2026-05-04     |
-| 3.0.0     | Smart routing (Intent Map in CLAUDE.md), rich SessionStart context (15-stack auto-detect + git richness + cost + last-24h agents), `/onboard-project` bootstrap wizard, statusline budget alerts. ~20-30% token savings vs v2.1.                            | 2026-05-04     |
-| 2.1.0     | `bin/flow-viewer.sh` ASCII gantt of sessions, mandatory phase banners in `/flow`, `/status` rewritten (was broken since v1.0), CI runs `tests/scripts/`. No UI surfaces — text only.                                                                        | 2026-05-04     |
-| 2.0.0     | 18 → 12 archetype-grounded agents (Vogels, Linus, Gregg, Schneier, Beck, Norman…). New `/flow` Discover→Define→Develop→Deliver pipeline. Project-agnostic.                                                                                                  | 2026-05-03     |
-| 1.1.0     | Hook consolidation (track-agent → log-agents), Makefile, plugin manifest, `bin/compress.sh`, +CI gates.                                                                                                                                                     | 2026-05-03     |
-| 1.0.0     | Foundation: tests, CI, schemas, evals, MCP-first. Removed Obsidian, dashboard, flow-diagram, graphify.                                                                                                                                                      | 2026-05-03     |
-| 0.4.0     | +6 agents, +1 skill (graphify), levantamiento doc                                                                                                                                                                                                           | 2026-05-03     |
-| 0.3.0     | Inter-agent memory templates, bilingual routing                                                                                                                                                                                                             | 2026-05-03     |
-| 0.2.0     | 11 slash commands, ES/EN routing                                                                                                                                                                                                                            | 2026-05-03     |
-| 0.1.0     | 6 agents, 5 hooks, 3 skills                                                                                                                                                                                                                                 | 2026-05-01     |
+| Version   | Headline                                                                                                                                                                                                                                                                                     | Date           |
+| --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------- |
+| **4.1.0** | **Quality measurement pack: `bin/parallelism-check.sh`, `bin/latency-report.sh`, route-prompt.bats extended to 22 cases (16 Tier B canonical), `make test-quality` target.** | **2026-05-04** |
+| 4.0.0 | Combined v3.2+v3.3+v4.0: 3 specialist agents (python-pro, typescript-pro, react-pro), 3 new hooks (cwd-changed, notify, architecture-gate), 2 new bin utilities (session-analyze, agent-memory-compact), 3 new commands (/issue, /pr-create, /plan-flow), AGENTS.md root file. ADR-0005. | 2026-05-04 |
+| 3.1.0     | Efficiency + analysis pack: `bin/flow-estimate.sh`, synthesis compression, Phase 2 deduplication, per-phase cost, auto-ADR detection, SCAN MODE for surgical edits.                                                                                                                          | 2026-05-04     |
+| 3.0.1     | Patch: install.sh now copies `bin/` (was missing). Added `tests/scripts/compress.bats`. New `docs/QUICKSTART.md`. Updated `docs/HOW-IT-WORKS.md` to v3.0 features. verify.sh checks `bin/`.                                                                                                  | 2026-05-04     |
+| 3.0.0     | Smart routing (Intent Map in CLAUDE.md), rich SessionStart context (15-stack auto-detect + git richness + cost + last-24h agents), `/onboard-project` bootstrap wizard, statusline budget alerts. ~20-30% token savings vs v2.1.                                                             | 2026-05-04     |
+| 2.1.0     | `bin/flow-viewer.sh` ASCII gantt of sessions, mandatory phase banners in `/flow`, `/status` rewritten (was broken since v1.0), CI runs `tests/scripts/`. No UI surfaces — text only.                                                                                                         | 2026-05-04     |
+| 2.0.0     | 18 → 12 archetype-grounded agents (Vogels, Linus, Gregg, Schneier, Beck, Norman…). New `/flow` Discover→Define→Develop→Deliver pipeline. Project-agnostic.                                                                                                                                   | 2026-05-03     |
+| 1.1.0     | Hook consolidation (track-agent → log-agents), Makefile, plugin manifest, `bin/compress.sh`, +CI gates.                                                                                                                                                                                      | 2026-05-03     |
+| 1.0.0     | Foundation: tests, CI, schemas, evals, MCP-first. Removed Obsidian, dashboard, flow-diagram, graphify.                                                                                                                                                                                       | 2026-05-03     |
+| 0.4.0     | +6 agents, +1 skill (graphify), levantamiento doc                                                                                                                                                                                                                                            | 2026-05-03     |
+| 0.3.0     | Inter-agent memory templates, bilingual routing                                                                                                                                                                                                                                              | 2026-05-03     |
+| 0.2.0     | 11 slash commands, ES/EN routing                                                                                                                                                                                                                                                             | 2026-05-03     |
+| 0.1.0     | 6 agents, 5 hooks, 3 skills                                                                                                                                                                                                                                                                  | 2026-05-01     |
 
 Migration from v0.x: see [`CHANGELOG.md`](./CHANGELOG.md) → `[1.0.0]` → Migration.
 

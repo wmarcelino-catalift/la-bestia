@@ -6,6 +6,41 @@ This project adheres to [Semantic Versioning 2.0.0](https://semver.org/).
 
 ## [Unreleased]
 
+## [4.1.0] — 2026-05-04
+
+Quality measurement pack — auto-checkable evidence that the system works WELL, FAST, IN PARALLEL, RELIABLY. No breaking changes.
+
+### Added
+
+- **`bin/parallelism-check.sh`** — analyzes `agents.jsonl` for fan-out events. Buckets pre-events in 5s windows, identifies parallel dispatches (≥2 simultaneous), computes elapsed-vs-sum ratio. Verdict `PARALLEL` if elapsed < 60% of sum, else `SERIAL_OR_SLOW`. JSON output for CI (`--json`).
+- **`bin/latency-report.sh`** — p50/p95 per agent vs tier budgets. Defaults: opus p50<60s p95<180s, sonnet p50<30s p95<90s. Override with `LATENCY_OPUS_P50` etc. Strict mode (`--strict`) exits 1 on over-budget agents.
+- **`tests/hooks/route-prompt.bats`** — extended from 6 cases to **22 cases**: 16 Tier B canonical Intent Map tests (one per intent) + 4 edge cases + 2 originals. Validates routing layer deterministically (no LLM calls needed).
+- **`Makefile` target `test-quality`** — runs routing bats + parallelism check + latency report against your live `~/.claude/logs/agents.jsonl`. Single command for v4.0 plan-of-tests Tiers I + J + B.
+
+### Changed
+
+- **`config/scripts/verify.sh`** — counts updated to 6 bin utilities (added parallelism-check + latency-report).
+
+### Migration from v4.0
+
+No action required. New utilities are opt-in:
+
+```bash
+# After running /flow at least once:
+make test-quality
+
+# Or directly:
+bash ~/.claude/bin/parallelism-check.sh
+bash ~/.claude/bin/latency-report.sh
+```
+
+If `latency-report` reports an agent over budget, edit that agent's prompt in `config/agents/<name>.md` — usually trim the "Frontier knowledge" section or tighten "Output contract".
+
+### Known limitations
+
+- `parallelism-check` requires log entries with `event:"pre"` and `event:"post"` paired. The current `log-agents.sh` writes both, but if older logs predate the consolidation (v1.1), pre-events may be sparse.
+- `latency-report` display has a minor cosmetic bug with multi-agent listings on some bash versions; the JSON output (`--json`) is correct for CI consumption.
+
 ## [4.0.0] — 2026-05-04
 
 Major release combining v3.2 + v3.3 + v4.0 in a single ship. Adds 3 specialist agents, GitHub workflow commands, plus 3 new hooks for cwd / notify / architecture-gate, plus 2 new operator utilities (session-analyze, agent-memory-compact). See [ADR-0005](./memory/decisions/0005-specialist-agents.md).
@@ -340,7 +375,8 @@ Major consolidation. **18 agents → 12 archetype-grounded agents.** New `/flow`
 - 3 skills: `cto-thinking-system`, `ship-it`, `token-saver`.
 - Constitution `CLAUDE.md` with the 5 questions + 10 principles.
 
-[Unreleased]: https://github.com/wmarcelino-catalift/la-bestia/compare/v4.0.0...HEAD
+[Unreleased]: https://github.com/wmarcelino-catalift/la-bestia/compare/v4.1.0...HEAD
+[4.1.0]: https://github.com/wmarcelino-catalift/la-bestia/compare/v4.0.0...v4.1.0
 [4.0.0]: https://github.com/wmarcelino-catalift/la-bestia/compare/v3.1.0...v4.0.0
 [3.1.0]: https://github.com/wmarcelino-catalift/la-bestia/compare/v3.0.1...v3.1.0
 [3.0.1]: https://github.com/wmarcelino-catalift/la-bestia/compare/v3.0.0...v3.0.1
