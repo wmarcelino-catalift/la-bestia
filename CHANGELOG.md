@@ -6,6 +6,48 @@ This project adheres to [Semantic Versioning 2.0.0](https://semver.org/).
 
 ## [Unreleased]
 
+## [4.2.2] — 2026-05-04
+
+CI is **green for the first time in the project's history**. The CI workflow YAML had a colon-space inside an inline `run:` since v3.0, causing GitHub Actions to reject the file before spawning any jobs (every run since v3.0 completed in 0s with 0 jobs). Fixing the YAML surfaced 9 real bugs that had been latent under the broken CI.
+
+No breaking changes. No new surfaces. Pure stability + correctness.
+
+### Fixed
+
+- **`config/hooks/route-prompt.sh`** — three Intent Map regressions:
+  - `"arquitectura ideal"` was matching `*idea*` and routing to `@strategist` instead of `@architect`. Removed naked `*idea*` (matched "ideal" / "idealmente" / etc.); switched to space-padded variants.
+  - `"should I use X or Y"` was matching `*"should i"*` and routing to `@mentor`. Per Intent Map (§6.1) it should go to `@strategist`. Moved "should i use" / "should we" / "decisión" / "decision" to strategist; left adversarial-only patterns in mentor.
+  - `"flow pipeline"` was matching `*pipeline*` and routing to `@devops` instead of suggesting `/flow` skill. Moved flow-feature skill case to TOP of router so it wins over devops's broader pipeline keyword.
+  - Architecture case moved BEFORE strategy (more specific concepts win first).
+- **`config/hooks/architecture-gate.sh`** — two correctness bugs:
+  - The `grep -c PATTERN || echo 0` idiom produced multi-line value `"0\n0"` on no-match (grep prints "0" + exit 1, then `|| echo 0` appends another). This broke `[ -ge ]` comparisons. Switched to `grep -c ... 2>/dev/null || true; VAR=${VAR:-0}`.
+  - DIRS heuristic was counting unique TOP-LEVEL directories (e.g. files in `src/a`, `src/b`, `src/c`, `src/d` → 1 unique: "src"). Tests expected 4. Changed to count unique parent directories (dirname-style).
+- **`bin/flow-estimate.sh`** — shellcheck SC2259: `printf '%.1fk' "$(awk <<<)"` redirected stdin while inside command substitution. Rewritten as a direct `awk -v` one-liner.
+- **`bin/compress.sh`** — empty-input detection used `wc -l`, but `echo "" > file` produces a 1-line file. Switched to `grep -c '.'` (counts non-blank lines) so the script correctly emits `(empty input)` and exits 0.
+- **`config/skills/cto-thinking-system/SKILL.md`**, **`config/skills/ship-it/SKILL.md`** — added required `version:` and `triggers:` frontmatter (validated by `tests/run.sh schemas`).
+
+### Fixed (CI itself)
+
+- **`.github/workflows/ci.yml`** — root cause of the systemic CI failure:
+  - Line 38 had `run: node -e "...console.log('ok: ...')"`. The `: ` (colon-space) inside the unquoted YAML scalar tricked the parser into treating the rest as a nested mapping. Wrapped in a `|` block scalar.
+  - `install-smoke` job asserted `>= 18` agents; the v2.0 consolidation reduced to 12, and v4.0 added 3 specialists for 15 total. Updated to `>= 15` with `find -maxdepth 1 -name '*.md'` (avoids SC2012, safer than `ls`).
+  - `no-vault-leftovers` job's grep matched the deny-list assertions inside `verify.sh` (which intentionally references `live-update.sh` and `OBSIDIAN_VAULT` to assert their absence). Added `--exclude='verify.sh'`.
+
+### Fixed (test fixtures)
+
+- **`tests/hooks/block-secrets.bats`** — GitHub PAT classic fixture was 34 chars after `ghp_`; the regex requires `{36}`. Padded to the real 40-char shape.
+- **`tests/hooks/log-agents.bats`** — "jq missing" test set `PATH="$fake_path"` (empty dir). The hook also needs `mkdir`/`date`/`cat`/`tr`/`head`/`printf` (external) BEFORE the jq check; `env` itself resolves `bash` against the inner PATH. Symlinked coreutils + bash into the fake path; pass absolute bash path.
+
+### Migration from v4.2.1
+
+No action required. Re-install if you want the hook fixes:
+
+```bash
+bash install.sh global
+```
+
+Operators who never compacted a session, never crossed 4 dirs in a single commit, or never used "should I use X or Y" prompts likely never saw the bugs. But the fixes are unconditional improvements.
+
 ## [4.2.1] — 2026-05-04
 
 Patch — adds the last item from the v4.2 ecosystem-gap analysis (`frontend-design` skill).
