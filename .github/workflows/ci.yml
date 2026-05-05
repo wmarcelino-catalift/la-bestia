@@ -35,11 +35,12 @@ jobs:
       - name: Validate settings.example.json
         run: npx ajv validate -s schemas/settings.schema.json -d config/settings.example.json --strict=false
       - name: Validate plugin manifest is valid JSON
-        run: node -e "JSON.parse(require('fs').readFileSync('.claude-plugin/plugin.json','utf8')); console.log('ok: .claude-plugin/plugin.json')"
+        run: |
+          node -e "JSON.parse(require('fs').readFileSync('.claude-plugin/plugin.json','utf8')); console.log('ok plugin.json')"
       - name: Validate JSON files parse
         run: |
           for f in schemas/*.json config/settings.example.json; do
-            node -e "JSON.parse(require('fs').readFileSync('$f','utf8')); console.log('ok: $f')"
+            node -e "JSON.parse(require('fs').readFileSync('$f','utf8')); console.log('ok ' + '$f')"
           done
       - name: Agent frontmatter sanity
         run: bash tests/run.sh schemas
