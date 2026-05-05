@@ -48,14 +48,19 @@ NEW_TOP_DIRS=$(echo "$STAGED_FILES" | awk -F/ 'NF>1 {print $1}' | sort -u | whil
 done | wc -l | tr -d ' ')
 
 # ── Heuristic 3: many renames/deletes ──
-RENAMES=$(git diff --cached --name-status 2>/dev/null | grep -cE '^[RD]' || echo 0)
+# NOTE: `grep -c PATTERN || echo 0` yields "0\n0" on no-match (grep prints "0",
+# then `|| echo 0` appends another). Use `{ ... || true; }` and tolerate empty.
+RENAMES=$(git diff --cached --name-status 2>/dev/null | grep -cE '^[RD]' 2>/dev/null || true)
+RENAMES=${RENAMES:-0}
 
 # ── Heuristic 4: schema / migration changes ──
-SCHEMA_HITS=$(echo "$STAGED_FILES" | grep -cE 'migration|schema|\.sql$|prisma\/|\.proto$|openapi\.(yml|yaml|json)' || echo 0)
+SCHEMA_HITS=$(echo "$STAGED_FILES" | grep -cE 'migration|schema|\.sql$|prisma\/|\.proto$|openapi\.(yml|yaml|json)' 2>/dev/null || true)
+SCHEMA_HITS=${SCHEMA_HITS:-0}
 
 # ── Heuristic 5: public API surface ──
 # (very rough — counts changes in files matching common public-API names)
-API_HITS=$(echo "$STAGED_FILES" | grep -cE 'api\/|routes\/|pages\/api|server\/|controllers\/|handlers\/|public\/types' || echo 0)
+API_HITS=$(echo "$STAGED_FILES" | grep -cE 'api\/|routes\/|pages\/api|server\/|controllers\/|handlers\/|public\/types' 2>/dev/null || true)
+API_HITS=${API_HITS:-0}
 
 # ── Decide ──
 WARN_REASONS=()
@@ -68,7 +73,8 @@ WARN_REASONS=()
 [ ${#WARN_REASONS[@]} -eq 0 ] && exit 0
 
 # ── Check if an ADR was added ──
-ADR_ADDED=$(echo "$STAGED_FILES" | grep -cE 'memory/decisions/.*\.md$' || echo 0)
+ADR_ADDED=$(echo "$STAGED_FILES" | grep -cE 'memory/decisions/.*\.md$' 2>/dev/null || true)
+ADR_ADDED=${ADR_ADDED:-0}
 if [ "$ADR_ADDED" -ge 1 ]; then
   # Operator added an ADR — gate passes silently.
   exit 0

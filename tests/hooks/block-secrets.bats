@@ -82,7 +82,8 @@ setup() {
 }
 
 @test "blocks content with GitHub PAT classic" {
-  local pre="gh" body="p_FIXTURE0NOT0REAL000000000000000000"
+  # ghp_ + 36 alphanumeric chars = 40 total (real GitHub PAT shape).
+  local pre="gh" body="p_FIXTURE0NOT0REAL00000000000000000000"
   local k="${pre}${body}"
   CLAUDE_TOOL_INPUT='{"file_path":"/repo/cfg.ts","content":"const t = \"'"$k"'\""}'
   run env CLAUDE_TOOL_INPUT="$CLAUDE_TOOL_INPUT" bash "$HOOK"

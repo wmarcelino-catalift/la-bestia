@@ -86,8 +86,13 @@ teardown() {
 # ── No-jq fallback ────────────────────────────────────────────────────────────
 
 @test "writes minimal entry when jq is missing (degraded mode)" {
-  # Simulate by overriding PATH to exclude jq
+  # Simulate jq missing while keeping coreutils accessible. PATH="" wouldn't
+  # work — the hook also needs mkdir/date/cat (external) before the jq check.
   fake_path=$(mktemp -d)
+  for tool in mkdir date cat tr head printf; do
+    src=$(command -v "$tool")
+    [ -n "$src" ] && ln -sf "$src" "$fake_path/$tool"
+  done
   run env PATH="$fake_path" CLAUDE_TOOL_NAME=Task CLAUDE_TOOL_INPUT='{"subagent_type":"x"}' bash "$HOOK" post
   [ "$status" -eq 0 ]
   rm -rf "$fake_path"

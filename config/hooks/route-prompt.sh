@@ -13,23 +13,32 @@ P=$(echo "$PROMPT" | tr '[:upper:]' '[:lower:]')
 
 ROUTE=""
 case "$P" in
+  # ── Skills FIRST (override broader agent matches) ────────────────────────
+  # `flow` / `pipeline-for-feature` outranks devops's broad `*pipeline*`.
+  *flow*|*"full feature"*|*"double diamond"*|*"build feature"*)
+    ROUTE="flow-feature (skill — try /flow)" ;;
+
+  # ── Architecture / system design / ADRs (before strategy — more specific)
+  *arquitectura*|*architecture*|*diseño*|*tradeoff*|*"vs "*|*patrón*|*escalabilidad*|\
+  *adr*|*"cross-module"*|*"event-driven"*|*microservices*|*cqrs*|*saga*|\
+  *"system design"*|*"distributed"*|*kafka*|*workflow*)
+    ROUTE="architect" ;;
+
   # ── Strategy / product / business ────────────────────────────────────────
-  *idea*|*"feature nuevo"*|*producto*|*negocio*|*estrategia*|*roadmap*|*priorizar*|\
-  *"build vs buy"*|*"comprar vs construir"*|*rice*|*okr*|*kpi*|*"unit economics"*|\
-  *"jobs to be done"*|*jtbd*|*pricing*|*"go to market"*|*pmf*|*"pr-faq"*|\
-  *"working backwards"*)
+  # NOTE: dropped naked `*idea*` — matched "ideal" / "idealmente" too broadly.
+  # Use space-padded variants below.
+  *" idea "*|*" idea,"*|*" idea."*|*" idea:"*|*"feature nuevo"*|*producto*|\
+  *negocio*|*estrategia*|*roadmap*|*priorizar*|*decisión*|*decision*|\
+  *"should i use"*|*"should we"*|*"build vs buy"*|*"comprar vs construir"*|\
+  *rice*|*okr*|*kpi*|*"unit economics"*|*"jobs to be done"*|*jtbd*|*pricing*|\
+  *"go to market"*|*pmf*|*"pr-faq"*|*"working backwards"*)
     ROUTE="strategist" ;;
 
   # ── Adversarial review / decision validator ──────────────────────────────
+  # Removed `*"should i"*` (too broad — see strategist's "should i use").
   *"pre-mortem"*|*"second opinion"*|*"devil's advocate"*|*"abogado del diablo"*|\
-  *"one-way door"*|*"stress test"*|*"should i"*|*"is this right"*|*"review my plan"*)
+  *"one-way door"*|*"stress test"*|*"is this right"*|*"review my plan"*)
     ROUTE="mentor" ;;
-
-  # ── Architecture / system design / ADRs ──────────────────────────────────
-  *arquitectura*|*diseño*|*tradeoff*|*"vs "*|*patrón*|*escalabilidad*|*adr*|\
-  *"cross-module"*|*"event-driven"*|*microservices*|*cqrs*|*saga*|*"system design"*|\
-  *"distributed"*|*kafka*|*workflow*)
-    ROUTE="architect" ;;
 
   # ── Security / auth / payments / threat models ───────────────────────────
   *auth*|*login*|*password*|*payment*|*pago*|*secret*|*token*|*owasp*|*permission*|\
@@ -85,11 +94,9 @@ case "$P" in
   *"data warehouse"*|*pgvector*|*"vector store"*|*embedding*)
     ROUTE="data-engineer" ;;
 
-  # ── Skills (auto-trigger via skill triggers, this is just a hint) ────────
+  # ── Ship-it skill (last — broad keywords like "merge"/"push") ────────────
   *commit*|*"pull request"*|*" pr "*|*merge*|*ship*|*push*)
     ROUTE="ship-it (skill)" ;;
-  *flow*|*pipeline*|*"full feature"*|*"double diamond"*|*"build feature"*)
-    ROUTE="flow-feature (skill — try /flow)" ;;
 esac
 
 if [ -n "$ROUTE" ]; then

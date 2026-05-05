@@ -1,6 +1,8 @@
 ---
 name: ship-it
+version: 2.0.0
 description: "Pre-merge quality gates: tests pass, linter clean, no secrets, migrations reversibles, conventional commit, code-reviewer + security-auditor approved. Auto-activate when prompt contains 'commit', 'PR', 'merge', 'ship', 'deploy', 'pull request', 'push'."
+triggers: [commit, PR, merge, ship, deploy, "pull request", push]
 ---
 
 # Ship It — Quality Gates

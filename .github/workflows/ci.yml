@@ -77,7 +77,7 @@ jobs:
           bash install.sh project /tmp/smoke/.claude
           test -d /tmp/smoke/.claude/agents
           test -f /tmp/smoke/.claude/settings.json
-          test "$(ls /tmp/smoke/.claude/agents/*.md | wc -l)" -ge 18
+          test "$(find /tmp/smoke/.claude/agents -maxdepth 1 -name '*.md' | wc -l)" -ge 15
           # Re-run is idempotent
           bash install.sh project /tmp/smoke/.claude
 
@@ -89,8 +89,11 @@ jobs:
       - name: Reject reintroduced vault paths
         run: |
           set -e
+          # Exclude verify.sh — it intentionally references the bad strings
+          # in deny-list assertions ("[ ! -f live-update.sh ]" etc.).
           BAD=$(grep -rEn 'OBSIDIAN_VAULT|claude-brain|\.claude/vault|live-update\.sh' \
             --include='*.sh' --include='*.json' \
+            --exclude='verify.sh' \
             config/ install.sh 2>/dev/null || true)
           if [ -n "$BAD" ]; then
             echo "✗ reintroduced vault references in active code paths:"

@@ -142,8 +142,10 @@ SAVINGS_PCT=$(( (SOLO_CENTS - TOTAL_CENTS) * 100 / SOLO_CENTS ))
 # ── Format helpers ───────────────────────────────────────────────────────────
 fmt_tokens() {
   local n=$1
-  if [ "$n" -ge 1000 ]; then printf '%.1fk' "$(echo "$n / 1000" | awk '{printf "%.1f", $1/1000}' <<<"$n")"
-  else echo "$n"
+  if [ "$n" -ge 1000 ]; then
+    awk -v n="$n" 'BEGIN { printf "%.1fk", n/1000 }'
+  else
+    echo "$n"
   fi
 }
 

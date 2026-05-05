@@ -1,6 +1,8 @@
 ---
 name: cto-thinking-system
+version: 2.0.0
 description: "Apply the CTO senior thinking framework: 5 mandatory questions filter + builder/buy decision matrix + one-way door identification. Auto-activate when prompt contains 'decisión', 'diseño', 'arquitectura', 'estrategia', 'producto', 'feature nuevo', 'comprar vs construir', 'roadmap', 'priorizar'."
+triggers: [decisión, diseño, arquitectura, estrategia, producto, roadmap, priorizar]
 ---
 
 # CTO Thinking System
