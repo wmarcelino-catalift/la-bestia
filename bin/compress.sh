@@ -41,7 +41,10 @@ else
   cp "$INPUT" "$TMP"
 fi
 
-TOTAL=$(wc -l < "$TMP" | tr -d ' ')
+# Count non-blank lines so `echo "" > file` (which writes 1 newline) still
+# counts as empty input.
+TOTAL=$(grep -cE '.' "$TMP" 2>/dev/null || true)
+TOTAL=${TOTAL:-0}
 [ "$TOTAL" -eq 0 ] && { echo "(empty input)"; exit 0; }
 
 # ── Header ───────────────────────────────────────────────────────────────────
