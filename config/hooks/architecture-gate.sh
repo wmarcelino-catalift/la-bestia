@@ -38,7 +38,12 @@ STAGED_FILES=$(git diff --cached --name-only 2>/dev/null)
 [ -z "$STAGED_FILES" ] && exit 0
 
 # ── Heuristic 1: cross-module change ──
-DIRS=$(echo "$STAGED_FILES" | awk -F/ '{print $1}' | sort -u | wc -l | tr -d ' ')
+# Count unique parent directories. dirname-style: "a/b/c.ts" → "a/b".
+# Files at root contribute "." Many distinct parent dirs ⇒ wide change.
+DIRS=$(echo "$STAGED_FILES" | awk -F/ '{
+  if (NF == 1) print ".";
+  else { OFS="/"; $NF=""; sub("/$",""); print }
+}' | sort -u | wc -l | tr -d ' ')
 
 # ── Heuristic 2: new top-level directories ──
 NEW_TOP_DIRS=$(echo "$STAGED_FILES" | awk -F/ 'NF>1 {print $1}' | sort -u | while read -r d; do
